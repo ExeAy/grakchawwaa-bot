@@ -1,2 +1,3 @@
 # grakchawwaa-bot
-Code for the Grakchawwaa discord applicaiton
+
+Code for the Grakchawwaa discord applicaton
