@@ -30,6 +30,7 @@ export async function DiscordRequest(
 
 export async function InstallGlobalCommands(
   appId: string | undefined,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   commands: any,
 ) {
   // API endpoint to overwrite global commands

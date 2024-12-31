@@ -77,7 +77,7 @@ router.post("/", async (request, env) => {
 })
 router.all("*", () => new Response("Not Found.", { status: 404 }))
 
-async function verifyDiscordRequest(request: IRequest, env: any) {
+async function verifyDiscordRequest(request: IRequest, env: Environment) {
   const signature = request.headers.get("x-signature-ed25519")
   const timestamp = request.headers.get("x-signature-timestamp")
   const body = await request.text()
