@@ -12,7 +12,7 @@ import { Command } from "./model/discord-models"
 import { Environment } from "./model/environment"
 
 class JsonResponse extends Response {
-  constructor(body: unknown, init: ResponseInit) {
+  constructor(body: unknown, init?: ResponseInit) {
     const jsonBody = JSON.stringify(body)
     init = init || {
       headers: {
@@ -42,6 +42,7 @@ router.post("/", async (request, env) => {
     request,
     env,
   )
+
   if (!isValid || !interaction) {
     return new Response("Bad request signature.", { status: 401 })
   }
@@ -49,26 +50,21 @@ router.post("/", async (request, env) => {
   if (interaction.type === InteractionType.PING) {
     // The `PING` message is used during the initial webhook handshake, and is
     // required to configure the webhook in the developer portal.
-    return new JsonResponse(
-      {
-        type: InteractionResponseType.PONG,
-      },
-      { status: 200 },
-    )
+    return new JsonResponse({
+      type: InteractionResponseType.PONG,
+    })
   }
 
   if (interaction.type === InteractionType.APPLICATION_COMMAND) {
+    console.log(interaction.data)
     switch (interaction.data.name.toLowerCase()) {
       case Command.RegisterPlayer: {
-        return new JsonResponse(
-          {
-            type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
-            data: {
-              content: `Player registered with ally code: ${interaction.data.options[0].value} has been registered.`,
-            },
+        return new JsonResponse({
+          type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
+          data: {
+            content: `Player registered with ally code: ${interaction.data.options[0].value} has been registered.`,
           },
-          { status: 200 },
-        )
+        })
       }
 
       default:
