@@ -13,6 +13,7 @@ lerna-debug.log*
 # App specific
 config.json
 *.env
+*.vars
 
 # Diagnostic reports (https://nodejs.org/api/report.html)
 report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json

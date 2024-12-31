@@ -33,4 +33,4 @@ const REGISTER_PLAYER_COMMAND = {
 
 const ALL_COMMANDS = [TEST_COMMAND, REGISTER_PLAYER_COMMAND]
 
-InstallGlobalCommands(process.env.APP_ID, ALL_COMMANDS)
+InstallGlobalCommands(process.env.DISCORD_APPLICATION_ID, ALL_COMMANDS)

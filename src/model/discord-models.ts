@@ -4,6 +4,10 @@ export enum CommandType {
   MESSAGE = 3,
 }
 
+export enum Command {
+  RegisterPlayer = "register-player",
+}
+
 export enum CommandOptionType {
   SUB_COMMAND = 1,
   SUB_COMMAND_GROUP = 2,

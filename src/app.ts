@@ -18,7 +18,7 @@ const PORT = process.env.PORT || 3000
  */
 app.post(
   "/interactions",
-  verifyKeyMiddleware(process.env.PUBLIC_KEY!),
+  verifyKeyMiddleware(process.env.DISCORD_PUBLIC_KEY!),
   async function (req, res) {
     // Interaction type and data
     const { type, data, id } = req.body
