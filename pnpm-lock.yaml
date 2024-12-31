@@ -11,9 +11,6 @@ importers:
       discord-interactions:
         specifier: ^4.1.0
         version: 4.1.0
-      dotenv:
-        specifier: ^16.4.7
-        version: 16.4.7
       itty-router:
         specifier: ^5.0.18
         version: 5.0.18
@@ -24,6 +21,9 @@ importers:
       '@types/node':
         specifier: ^22.10.2
         version: 22.10.2
+      dotenv:
+        specifier: ^16.4.7
+        version: 16.4.7
       eslint:
         specifier: ^9.17.0
         version: 9.17.0
@@ -417,8 +417,8 @@ packages:
   concat-map@0.0.1:
     resolution: {integrity: sha512-/Srv4dswyQNBfohGpz9o6Yb3Gz3SrUDqBH5rTuhGR7ahtlbYKnVxw2bCFMRljaA7EXHaXZ8wsHdodFvbkhKmqg==}
 
-  cookie@0.7.1:
-    resolution: {integrity: sha512-6DnInpx7SJ2AK3+CTUE/ZM0vWTUboZCegxhC2xiIydHR9jNuTAASBrfEpHhiGOZw/nX51bHt6YQl8jsGo4y/0w==}
+  cookie@0.7.2:
+    resolution: {integrity: sha512-yki5XnKuf750l50uGTllt6kKILY4nQ1eNIQatoXEByZ5dWgnKqbnqmTrBE5B4N7lrMJKQ2ytWMiTO2o0v6Ew/w==}
     engines: {node: '>= 0.6'}
 
   create-require@1.1.1:
@@ -1185,7 +1185,7 @@ snapshots:
 
   concat-map@0.0.1: {}
 
-  cookie@0.7.1: {}
+  cookie@0.7.2: {}
 
   create-require@1.1.1: {}
 
@@ -1644,7 +1644,7 @@ snapshots:
 
   youch@3.3.4:
     dependencies:
-      cookie: 0.7.1
+      cookie: 0.7.2
       mustache: 4.2.0
       stacktracey: 2.1.8
 
