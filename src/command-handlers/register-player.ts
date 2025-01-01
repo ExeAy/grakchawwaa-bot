@@ -9,7 +9,8 @@ export const registerPlayer = async (
   env: Environment,
 ): Promise<JsonResponse> => {
   try {
-    console.log("dc user", player.discordUser)
+    player.allyCode = player.allyCode.replace(/-/g, "")
+
     const result = await storePlayerData(env, {
       key: player.discordUser.id,
       value: JSON.stringify(player),

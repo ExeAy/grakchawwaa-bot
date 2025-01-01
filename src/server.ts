@@ -51,7 +51,7 @@ router.post("/", async (request, env) => {
       case Command.RegisterPlayer: {
         const discordUser: DiscordUser = interaction.data.options[1]
           ? { id: interaction.data.options[1].value }
-          : interaction.member.user
+          : { id: interaction.member.user.id }
         return await registerPlayer(
           {
             discordUser,
