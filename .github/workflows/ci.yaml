@@ -26,5 +26,7 @@ jobs:
       - name: Deploy
         uses: cloudflare/wrangler-action@v3
         with:
+          environment: prod
           wranglerVersion: "3.99.0"
-          apiToken: ${{ secrets.CF_API_TOKEN }}
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
