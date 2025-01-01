@@ -8,9 +8,10 @@
     "node": ">=18.x"
   },
   "scripts": {
-    "start": "wrangler dev",
+    "start": "wrangler dev --env dev",
+    "start-remote": "wrangler dev  --remote --env dev",
     "register": "ts-node src/commands",
-    "publish": "wrangler deploy",
+    "publish": "wrangler deploy --env prod",
     "ngrok": "ngrok http 8787",
     "lint": "eslint '**/*.ts'"
   },

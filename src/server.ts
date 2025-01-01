@@ -8,20 +8,11 @@ import {
   verifyKey,
 } from "discord-interactions"
 import { AutoRouter, IRequest } from "itty-router"
+import { registerPlayer } from "./command-handlers/register-player"
 import { Command } from "./model/discord-models"
 import { Environment } from "./model/environment"
-
-class JsonResponse extends Response {
-  constructor(body: unknown, init?: ResponseInit) {
-    const jsonBody = JSON.stringify(body)
-    init = init || {
-      headers: {
-        "content-type": "application/json;charset=UTF-8",
-      },
-    }
-    super(jsonBody, init)
-  }
-}
+import { JsonResponse } from "./model/json-response"
+import { DiscordUser } from "./model/player"
 
 const router = AutoRouter()
 
@@ -56,15 +47,18 @@ router.post("/", async (request, env) => {
   }
 
   if (interaction.type === InteractionType.APPLICATION_COMMAND) {
-    console.log(interaction.data)
     switch (interaction.data.name.toLowerCase()) {
       case Command.RegisterPlayer: {
-        return new JsonResponse({
-          type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
-          data: {
-            content: `Player registered with ally code: ${interaction.data.options[0].value} has been registered.`,
+        const discordUser: DiscordUser = interaction.data.options[1]
+          ? { id: interaction.data.options[1].value }
+          : interaction.member.user
+        return await registerPlayer(
+          {
+            discordUser,
+            allyCode: interaction.data.options[0].value,
           },
-        })
+          env,
+        )
       }
 
       default:

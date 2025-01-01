@@ -2,7 +2,7 @@ import dotenv from "dotenv"
 import { CommandOptionType, CommandType } from "./model/discord-models"
 import { InstallGlobalCommands } from "./utils"
 
-dotenv.config({ path: ".dev.vars" })
+dotenv.config({ path: ".prod.vars" })
 
 // Simple test command
 const TEST_COMMAND = {

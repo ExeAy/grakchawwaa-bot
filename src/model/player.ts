@@ -1,4 +1,11 @@
+export interface DiscordUser {
+  id: string
+  username?: string
+  global_name?: string
+}
+
 export interface Player {
   allyCode: string
-  discordId: string
+  altAllyCodes?: string[]
+  discordUser: DiscordUser
 }
