@@ -20,8 +20,11 @@ jobs:
     needs: [lint]
     steps:
       - uses: actions/checkout@v3
-      - uses: cloudflare/wrangler-action@v3
+      - uses: pnpm/action-setup@v4
         with:
-          environment: production
-          apiToken: ${{ secrets.CF_API_TOKEN }}
+          version: 9
+      - name: Deploy
+        uses: cloudflare/wrangler-action@v3
+        with:
           wranglerVersion: "3.99.0"
+          apiToken: ${{ secrets.CF_API_TOKEN }}
