@@ -24,7 +24,7 @@ jobs:
         with:
           version: 9
       - run: pnpm install
-      - run: pnpm run publish
-        env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
-          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CF_ACCOUNT_ID }}
+      - uses: cloudflare/wrangler-action@v3
+        with:
+          environment: production
+          apiToken: ${{ secrets.CF_API_TOKEN }}
