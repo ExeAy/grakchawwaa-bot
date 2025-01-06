@@ -23,3 +23,33 @@ export const storePlayerData = async (
     return false
   }
 }
+
+export const removePlayerData = async (
+  env: Environment,
+  key: string,
+): Promise<boolean> => {
+  try {
+    console.log("Removing key", key)
+    await env.PLAYERS_BINDING.delete(key)
+    return true
+  } catch (err) {
+    console.error(`KV returned error: ${err}`)
+    return false
+  }
+}
+
+export const getPlayerData = async (
+  env: Environment,
+  key: string,
+): Promise<string | null> => {
+  try {
+    const value = await env.PLAYERS_BINDING.get(key)
+    if (value === null) {
+      return null
+    }
+    return value as string
+  } catch (err) {
+    console.error(`KV returned error: ${err}`)
+    return null
+  }
+}

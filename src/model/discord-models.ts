@@ -6,6 +6,8 @@ export enum CommandType {
 
 export enum Command {
   RegisterPlayer = "register-player",
+  UnregisterPlayer = "unregister-player",
+  IdentifyPLayer = "identify-player",
 }
 
 export enum CommandOptionType {

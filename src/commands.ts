@@ -1,38 +1,9 @@
 import dotenv from "dotenv"
-import { CommandOptionType, CommandType } from "./model/discord-models"
+import PLAYER_COMMANDS from "./commands/player-commands"
 import { InstallGlobalCommands } from "./utils"
 
 dotenv.config({ path: ".prod.vars" })
 
-// Simple test command
-const TEST_COMMAND = {
-  name: "test",
-  description: "Basic command",
-  type: CommandType.CHAT_INPUT,
-  integration_types: [0, 1],
-  contexts: [0, 1, 2],
-}
-
-const REGISTER_PLAYER_COMMAND = {
-  name: "register-player",
-  description: "Register a player",
-  options: [
-    {
-      name: "ally-code",
-      description: "Ally code to register",
-      type: CommandOptionType.STRING,
-      required: true,
-    },
-    {
-      name: "discord-user",
-      description: "Discord used (if different from the one registering)",
-      type: CommandOptionType.USER,
-      required: false,
-    },
-  ],
-  type: CommandType.CHAT_INPUT,
-}
-
-const ALL_COMMANDS = [TEST_COMMAND, REGISTER_PLAYER_COMMAND]
+const ALL_COMMANDS = [...PLAYER_COMMANDS]
 
 InstallGlobalCommands(process.env.DISCORD_APPLICATION_ID, ALL_COMMANDS)

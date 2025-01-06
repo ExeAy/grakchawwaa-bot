@@ -7,14 +7,17 @@ import {
   InteractionType,
   verifyKey,
 } from "discord-interactions"
-import { AutoRouter, IRequest } from "itty-router"
-import { registerPlayer } from "./command-handlers/register-player"
+import { IRequest } from "itty-router"
+import {
+  getPlayerInformation,
+  registerPlayer,
+  unRegisterPlayer,
+} from "./command-handlers/player"
 import { Command } from "./model/discord-models"
 import { Environment } from "./model/environment"
 import { JsonResponse } from "./model/json-response"
 import { DiscordUser } from "./model/player"
-
-const router = AutoRouter()
+import { router } from "./router"
 
 /**
  * A simple :wave: hello page to verify the worker is working.
@@ -60,7 +63,16 @@ router.post("/", async (request, env) => {
           env,
         )
       }
-
+      case Command.IdentifyPLayer:
+        console.log("IdentifyPLayer", interaction.member.user)
+        return await getPlayerInformation(interaction.member.user, env)
+      case Command.UnregisterPlayer:
+        return await unRegisterPlayer(
+          interaction.data.options?.[1]
+            ? interaction.data.options[1].value
+            : interaction.member.user.id,
+          env,
+        )
       default:
         return new JsonResponse({ error: "Unknown Type" }, { status: 400 })
     }

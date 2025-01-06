@@ -5,7 +5,7 @@ export interface DiscordUser {
 }
 
 export interface Player {
-  allyCode: string
+  allyCode?: string
   altAllyCodes?: string[]
   discordUser: DiscordUser
 }
