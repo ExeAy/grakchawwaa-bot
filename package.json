@@ -9,7 +9,7 @@
   },
   "scripts": {
     "build": "tsc",
-    "start": "node dist/src/index.js",
+    "start": "node dist/index.js",
     "postinstall": "npm run build",
     "dev": "dotenvx run -f .env.dev -- ts-node src/index.ts",
     "prod": "dotenvx run -f .prod.dev -- ts-node src/index.ts",
