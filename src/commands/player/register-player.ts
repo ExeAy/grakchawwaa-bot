@@ -2,6 +2,7 @@ import { Command } from "@sapphire/framework"
 import { userMention } from "discord.js"
 import { addUser } from "../../db/players"
 
+// 1327397643000746004
 export class RegisterPlayerCommand extends Command {
   public constructor(context: Command.LoaderContext, options: Command.Options) {
     super(context, {

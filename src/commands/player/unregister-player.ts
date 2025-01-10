@@ -2,7 +2,7 @@ import { Command } from "@sapphire/framework"
 import { userMention } from "discord.js"
 import { removeAllyCode, removePlayer } from "../../db/players"
 
-// 1327303722027450392
+// 1327397640488620146
 
 export class UnregisterPlayerCommand extends Command {
   public constructor(context: Command.LoaderContext, options: Command.Options) {

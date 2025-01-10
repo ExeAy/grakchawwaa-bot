@@ -2,7 +2,7 @@ import { Command } from "@sapphire/framework"
 import { userMention } from "discord.js"
 import { getPlayer } from "../../db/players"
 
-// 1327303720681340938
+// 1327397638768951410
 
 export class IdentifyCommand extends Command {
   public constructor(context: Command.LoaderContext, options: Command.Options) {
