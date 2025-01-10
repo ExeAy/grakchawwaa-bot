@@ -30,6 +30,8 @@ export class RegisterPlayerCommand extends Command {
       .getString("ally-code")
       ?.replace(/-/g, "")
 
+    console.log("Received register player command", allyCode)
+
     const saveResult = await addUser({
       discordUser: interaction.user,
       allyCode: allyCode!,
