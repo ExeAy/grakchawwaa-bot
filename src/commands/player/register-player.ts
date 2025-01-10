@@ -6,7 +6,6 @@ export class RegisterPlayerCommand extends Command {
   public constructor(context: Command.LoaderContext, options: Command.Options) {
     super(context, {
       ...options,
-      description: "Send a Slash Command.",
     })
   }
 
