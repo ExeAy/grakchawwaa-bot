@@ -12,6 +12,13 @@ const client = new SapphireClient({
   ],
 })
 
-client.login(process.env.DISCORD_TOKEN)
+client
+  .login(process.env.DISCORD_TOKEN)
+  .then(() => {
+    console.log("Bot started successfully.")
+  })
+  .catch((error) => {
+    console.error("Error logging in:", error)
+  })
 
-console.log("Bot started, ", process.env.DISCORD_APPLICATION_ID)
+console.log("Bot initialization complete, ", process.env.DISCORD_APPLICATION_ID)
