@@ -26,7 +26,9 @@ export class RegisterPlayerCommand extends Command {
   public override async chatInputRun(
     interaction: Command.ChatInputCommandInteraction,
   ) {
-    const allyCode = interaction.options.getString("ally-code")
+    const allyCode = interaction.options
+      .getString("ally-code")
+      ?.replace(/-/g, "")
 
     const saveResult = await addUser({
       discordUser: interaction.user,
