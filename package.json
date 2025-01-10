@@ -5,11 +5,11 @@
   "description": "Discord example app",
   "main": "src/index.ts",
   "engines": {
-    "node": ">=18.x"
+    "node": ">=20.x"
   },
   "scripts": {
+    "start": "dotenvx run -f .env.prod -- ts-node src/index.ts",
     "dev": "dotenvx run -f .env.dev -- ts-node src/index.ts",
-    "prod": "dotenvx run -f .env.prod -- ts-node src/index.ts",
     "reset-commands-dev": "dotenvx run -f .env.dev -- ts-node src/reset-commands.ts",
     "reset-commands-prod": "dotenvx run -f .env.prod -- ts-node src/reset-commands.ts",
     "publish": "wrangler deploy --env prod",
