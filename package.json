@@ -3,14 +3,15 @@
   "private": true,
   "version": "1.0.0",
   "description": "Discord example app",
-  "main": "src/app.ts",
+  "main": "src/index.ts",
   "engines": {
-    "node": ">=18.x"
+    "node": ">=20.x"
   },
   "scripts": {
-    "start": "wrangler dev --env dev",
-    "start-remote": "wrangler dev  --remote --env dev",
-    "register": "ts-node src/commands",
+    "start": "dotenvx run -f .env.prod -- ts-node src/index.ts",
+    "dev": "dotenvx run -f .env.dev -- ts-node src/index.ts",
+    "reset-commands-dev": "dotenvx run -f .env.dev -- ts-node src/reset-commands.ts",
+    "reset-commands-prod": "dotenvx run -f .env.prod -- ts-node src/reset-commands.ts",
     "publish": "wrangler deploy --env prod",
     "ngrok": "ngrok http 8787",
     "lint": "eslint '**/*.ts'"
@@ -18,24 +19,23 @@
   "author": "ExeAy",
   "license": "MIT",
   "dependencies": {
-    "discord-interactions": "^4.1.0",
-    "itty-router": "^5.0.18"
+    "@sapphire/discord.js-utilities": "^7.3.2",
+    "@sapphire/framework": "^5.3.2",
+    "discord.js": "14.x",
+    "redis": "^4.7.0"
   },
   "devDependencies": {
+    "@dotenvx/dotenvx": "^1.32.0",
     "@eslint/js": "^9.17.0",
-    "@types/express": "^4.17.0",
     "@types/node": "^22.10.2",
-    "dotenv": "^16.4.7",
     "eslint": "^9.17.0",
     "eslint-config-prettier": "^9.1.0",
-    "express^4.17.1": "link:@types/express^4.17.1",
-    "globals": "^15.14.0",
     "prettier": "^3.4.2",
     "prettier-plugin-organize-imports": "^4.1.0",
     "ts-node": "^10.9.2",
+    "ts-node-dev": "^2.0.0",
     "tslib": "^2.8.1",
     "typescript": "^5.7.2",
-    "typescript-eslint": "^8.19.0",
-    "wrangler": "^3.99.0"
+    "typescript-eslint": "^8.19.0"
   }
 }
