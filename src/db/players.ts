@@ -1,8 +1,8 @@
+import { container } from "@sapphire/pieces"
 import { DiscordPlayer, Player } from "../model/player"
-import { getRedisClient } from "./redis-client"
 
 export const getPlayer = async (userId: string): Promise<Player | null> => {
-  const client = getRedisClient()
+  const client = container.redisClient
   try {
     await client.connect()
 
@@ -20,7 +20,7 @@ export const getPlayer = async (userId: string): Promise<Player | null> => {
 }
 
 export const addUser = async (player: DiscordPlayer): Promise<boolean> => {
-  const client = getRedisClient()
+  const client = container.redisClient
   try {
     await client.connect()
 
@@ -43,7 +43,7 @@ export const addUser = async (player: DiscordPlayer): Promise<boolean> => {
 export const removeAllyCode = async (
   player: DiscordPlayer,
 ): Promise<boolean> => {
-  const client = getRedisClient()
+  const client = container.redisClient
   try {
     await client.connect()
 
@@ -79,7 +79,7 @@ export const removeAllyCode = async (
 }
 
 export const removePlayer = async (player: DiscordPlayer): Promise<boolean> => {
-  const client = getRedisClient()
+  const client = container.redisClient
   try {
     await client.connect()
 

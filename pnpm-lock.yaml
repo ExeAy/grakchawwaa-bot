@@ -11,6 +11,9 @@ dependencies:
   '@sapphire/framework':
     specifier: ^5.3.2
     version: 5.3.2
+  '@sapphire/pieces':
+    specifier: ^4.3.1
+    version: 4.3.1
   discord.js:
     specifier: 14.x
     version: 14.17.3

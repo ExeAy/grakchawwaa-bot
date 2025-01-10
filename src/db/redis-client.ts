@@ -1,9 +1,14 @@
+import { container } from "@sapphire/framework"
 import { RedisClientType, createClient } from "redis"
 
-let redisClient: RedisClientType
+declare module "@sapphire/pieces" {
+  interface Container {
+    redisClient: RedisClientType
+  }
+}
 
 export const setupRedisClient = () => {
-  redisClient = createClient({
+  container.redisClient = createClient({
     url: process.env.HEROKU_REDIS_URI,
     password: process.env.HEROKU_REDIS_PASSWORD,
     socket: {
@@ -12,9 +17,7 @@ export const setupRedisClient = () => {
     },
   })
 
-  redisClient.on("error", (err) => console.error("Redis Client Error", err))
-}
-
-export const getRedisClient = () => {
-  return redisClient
+  container.redisClient.on("error", (err) =>
+    console.error("Redis Client Error", err),
+  )
 }
