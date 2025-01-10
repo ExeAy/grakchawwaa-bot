@@ -1,11 +1,7 @@
-export interface DiscordUser {
-  id: string
-  username?: string
-  global_name?: string
-}
+import { User } from "discord.js"
 
 export interface Player {
   allyCode?: string
   altAllyCodes?: string[]
-  discordUser: DiscordUser
+  discordUser: User
 }
