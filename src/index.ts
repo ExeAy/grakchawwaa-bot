@@ -13,3 +13,5 @@ const client = new SapphireClient({
 })
 
 client.login(process.env.DISCORD_TOKEN)
+
+console.log("Bot started, ", process.env.DISCORD_APPLICATION_ID)
