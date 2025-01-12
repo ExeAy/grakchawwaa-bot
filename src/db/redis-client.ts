@@ -7,12 +7,13 @@ declare module "@sapphire/pieces" {
   }
 }
 
+const redis_url = process.env.HEROKU_REDIS_URI!
+
 export const setupRedisClient = () => {
   container.redisClient = createClient({
-    url: process.env.HEROKU_REDIS_URI,
-    password: process.env.HEROKU_REDIS_PASSWORD,
+    url: redis_url,
     socket: {
-      tls: true,
+      tls: redis_url.match(/rediss:/) != null,
       rejectUnauthorized: false, // This allows self-signed certificates
     },
   })
