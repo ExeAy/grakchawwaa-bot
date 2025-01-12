@@ -2,7 +2,6 @@ import { Command } from "@sapphire/framework"
 import { userMention } from "discord.js"
 import { addUser } from "../../db/players"
 
-// 1327397643000746004
 export class RegisterPlayerCommand extends Command {
   public constructor(context: Command.LoaderContext, options: Command.Options) {
     super(context, {
@@ -11,16 +10,18 @@ export class RegisterPlayerCommand extends Command {
   }
 
   public override registerApplicationCommands(registry: Command.Registry) {
-    registry.registerChatInputCommand((builder) =>
-      builder //
-        .setName("register-player")
-        .setDescription("Register a player with an ally code")
-        .addStringOption((option) =>
-          option
-            .setName("ally-code")
-            .setDescription("Ally code to register")
-            .setRequired(true),
-        ),
+    registry.registerChatInputCommand(
+      (builder) =>
+        builder //
+          .setName("register-player")
+          .setDescription("Register a player with an ally code")
+          .addStringOption((option) =>
+            option
+              .setName("ally-code")
+              .setDescription("Ally code to register")
+              .setRequired(true),
+          ),
+      { idHints: ["1328102310261297253"] },
     )
   }
 

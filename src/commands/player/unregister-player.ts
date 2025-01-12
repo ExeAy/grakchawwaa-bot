@@ -2,8 +2,6 @@ import { Command } from "@sapphire/framework"
 import { userMention } from "discord.js"
 import { removeAllyCode, removePlayer } from "../../db/players"
 
-// 1327397640488620146
-
 export class UnregisterPlayerCommand extends Command {
   public constructor(context: Command.LoaderContext, options: Command.Options) {
     super(context, {
@@ -12,16 +10,18 @@ export class UnregisterPlayerCommand extends Command {
   }
 
   public override registerApplicationCommands(registry: Command.Registry) {
-    registry.registerChatInputCommand((builder) =>
-      builder
-        .setName("unregister-player")
-        .setDescription("Unregister a player or an ally code")
-        .addStringOption((option) =>
-          option
-            .setName("ally-code")
-            .setDescription("Ally code to unregister")
-            .setRequired(false),
-        ),
+    registry.registerChatInputCommand(
+      (builder) =>
+        builder
+          .setName("unregister-player")
+          .setDescription("Unregister a player or an ally code")
+          .addStringOption((option) =>
+            option
+              .setName("ally-code")
+              .setDescription("Ally code to unregister")
+              .setRequired(false),
+          ),
+      { idHints: ["1328102308889755781"] },
     )
   }
 

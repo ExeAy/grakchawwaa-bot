@@ -12,11 +12,6 @@ client.on("ready", () => {
 client.on("interactionCreate", async (interaction) => {
   if (!interaction.isCommand()) return
 
-  const { commandName } = interaction
-
-  if (commandName === "ping") {
-    await interaction.reply("Pong!")
-  }
   // Add more command handling here
 })
 

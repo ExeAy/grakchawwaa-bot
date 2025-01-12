@@ -8,7 +8,7 @@ export class PingCommand extends Command {
       ...options,
       name: "ping",
       aliases: ["pong"],
-      description: "ping pong",
+      description: "Replies with Pong!",
     })
   }
 
@@ -22,7 +22,7 @@ export class PingCommand extends Command {
     interaction: Command.ChatInputCommandInteraction,
   ) {
     const msg = await interaction.reply({
-      content: `Ping?`,
+      content: `Pong 🏓!`,
       withResponse: true,
     })
 

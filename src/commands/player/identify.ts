@@ -2,8 +2,6 @@ import { Command } from "@sapphire/framework"
 import { userMention } from "discord.js"
 import { getPlayer } from "../../db/players"
 
-// 1327397638768951410
-
 export class IdentifyCommand extends Command {
   public constructor(context: Command.LoaderContext, options: Command.Options) {
     super(context, {
@@ -12,10 +10,12 @@ export class IdentifyCommand extends Command {
   }
 
   public override registerApplicationCommands(registry: Command.Registry) {
-    registry.registerChatInputCommand((builder) =>
-      builder //
-        .setName("identify")
-        .setDescription("Identify the player and it's ally code"),
+    registry.registerChatInputCommand(
+      (builder) =>
+        builder //
+          .setName("identify")
+          .setDescription("Identify the player and it's ally code"),
+      { idHints: ["1328102307581394945"] },
     )
   }
 

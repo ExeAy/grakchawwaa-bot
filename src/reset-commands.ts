@@ -1,11 +1,6 @@
 import { REST, Routes } from "discord.js"
 
-const commands = [
-  {
-    name: "ping",
-    description: "Replies with Pong!",
-  },
-]
+const commands: unknown[] = []
 
 // Construct and prepare an instance of the REST module
 const rest = new REST().setToken(process.env.DISCORD_TOKEN!)
