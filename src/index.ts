@@ -1,19 +1,23 @@
-import { SapphireClient } from "@sapphire/framework"
-import { Events, GatewayIntentBits } from "discord.js"
 import { setupRedisClient } from "./db/redis-client"
+import { DiscordBotClient } from "./discord-bot-client"
 
 setupRedisClient()
 
-const client = new SapphireClient({
-  intents: [
-    GatewayIntentBits.MessageContent,
-    GatewayIntentBits.Guilds,
-    GatewayIntentBits.GuildMessages,
-  ],
+const client = new DiscordBotClient()
+
+client.on("ready", () => {
+  console.log(`Logged in as ${client.user?.tag}!`)
 })
 
-client.on(Events.InteractionCreate, (interaction) => {
-  console.log(interaction)
+client.on("interactionCreate", async (interaction) => {
+  if (!interaction.isCommand()) return
+
+  const { commandName } = interaction
+
+  if (commandName === "ping") {
+    await interaction.reply("Pong!")
+  }
+  // Add more command handling here
 })
 
 client
