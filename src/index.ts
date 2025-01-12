@@ -1,5 +1,5 @@
 import { SapphireClient } from "@sapphire/framework"
-import { GatewayIntentBits } from "discord.js"
+import { Events, GatewayIntentBits } from "discord.js"
 import { setupRedisClient } from "./db/redis-client"
 
 setupRedisClient()
@@ -10,6 +10,10 @@ const client = new SapphireClient({
     GatewayIntentBits.Guilds,
     GatewayIntentBits.GuildMessages,
   ],
+})
+
+client.on(Events.InteractionCreate, (interaction) => {
+  console.log(interaction)
 })
 
 client
