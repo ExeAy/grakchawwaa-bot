@@ -1,7 +1,4 @@
-import { setupRedisClient } from "./db/redis-client"
 import { DiscordBotClient } from "./discord-bot-client"
-
-setupRedisClient()
 
 const client = new DiscordBotClient()
 
