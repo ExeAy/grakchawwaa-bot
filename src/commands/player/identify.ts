@@ -1,12 +1,15 @@
 import { Command } from "@sapphire/framework"
 import { userMention } from "discord.js"
-import { getPlayer } from "../../db/players"
+import { PlayerOperationsCommand } from "./player-operations"
 
 export class IdentifyCommand extends Command {
+  private playerOps: PlayerOperationsCommand
+
   public constructor(context: Command.LoaderContext, options: Command.Options) {
     super(context, {
       ...options,
     })
+    this.playerOps = new PlayerOperationsCommand(context, options)
   }
 
   public override registerApplicationCommands(registry: Command.Registry) {
@@ -24,7 +27,7 @@ export class IdentifyCommand extends Command {
   ) {
     const userId = interaction.user.id
 
-    const user = await getPlayer(userId)
+    const user = await this.playerOps.getPlayer(userId)
     if (!user) {
       return interaction.reply({
         content: "Failed to identify player",

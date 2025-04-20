@@ -1,12 +1,15 @@
 import { Command } from "@sapphire/framework"
 import { userMention } from "discord.js"
-import { addUser } from "../../db/players"
+import { PlayerOperationsCommand } from "./player-operations"
 
 export class RegisterPlayerCommand extends Command {
+  private playerOps: PlayerOperationsCommand
+
   public constructor(context: Command.LoaderContext, options: Command.Options) {
     super(context, {
       ...options,
     })
+    this.playerOps = new PlayerOperationsCommand(context, options)
   }
 
   public override registerApplicationCommands(registry: Command.Registry) {
@@ -34,7 +37,7 @@ export class RegisterPlayerCommand extends Command {
 
     console.log("Received register player command", allyCode)
 
-    const saveResult = await addUser({
+    const saveResult = await this.playerOps.addUser({
       discordUser: interaction.user,
       allyCode: allyCode!,
       altAllyCodes: [],

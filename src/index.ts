@@ -1,7 +1,9 @@
+import { setupPostgresClients } from "./db/postgres-client"
 import { DiscordBotClient } from "./discord-bot-client"
 
-const client = new DiscordBotClient()
+setupPostgresClients()
 
+const client = new DiscordBotClient()
 client.on("ready", () => {
   console.log(`Logged in as ${client.user?.tag}!`)
 })
