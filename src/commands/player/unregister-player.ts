@@ -1,12 +1,15 @@
 import { Command } from "@sapphire/framework"
 import { userMention } from "discord.js"
-import { removeAllyCode, removePlayer } from "../../db/players"
+import { PlayerOperationsCommand } from "./player-operations"
 
 export class UnregisterPlayerCommand extends Command {
+  private playerOps: PlayerOperationsCommand
+
   public constructor(context: Command.LoaderContext, options: Command.Options) {
     super(context, {
       ...options,
     })
+    this.playerOps = new PlayerOperationsCommand(context, options)
   }
 
   public override registerApplicationCommands(registry: Command.Registry) {
@@ -31,7 +34,7 @@ export class UnregisterPlayerCommand extends Command {
     const allyCode = interaction.options.getString("ally-code")
 
     if (allyCode) {
-      const saveResult = await removeAllyCode({
+      const saveResult = await this.playerOps.removeAllyCode({
         allyCode: allyCode,
         altAllyCodes: [],
         discordUser: interaction.user,
@@ -49,7 +52,7 @@ export class UnregisterPlayerCommand extends Command {
         content: `Unregistered player with ally code: ${allyCode} for ${userCallerToMention}`,
       })
     }
-    const saveResult = await removePlayer({
+    const saveResult = await this.playerOps.removePlayer({
       discordUser: interaction.user,
       allyCode: "",
       altAllyCodes: [],
