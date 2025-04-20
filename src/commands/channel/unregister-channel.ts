@@ -22,7 +22,7 @@ export class UnregisterChannelCommand extends Command {
               .addChannelTypes(ChannelType.GuildText)
               .setRequired(true),
           ),
-      { idHints: ["1363592140055117997"] },
+      { idHints: ["1363597004277682206"] },
     )
   }
 
