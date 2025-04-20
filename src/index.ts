@@ -1,3 +1,4 @@
+import { container } from "@sapphire/pieces"
 import { setupPostgresClients } from "./db/postgres-client"
 import { DiscordBotClient } from "./discord-bot-client"
 
@@ -8,10 +9,19 @@ client.on("ready", () => {
   console.log(`Logged in as ${client.user?.tag}!`)
 })
 
-client.on("interactionCreate", async (interaction) => {
-  if (!interaction.isCommand()) return
+client.on("messageCreate", async (message) => {
+  if (message.author.bot) return
 
-  // Add more command handling here
+  const channelClient = container.channelClient
+  const isRegistered = await channelClient.isChannelRegistered(
+    message.channelId,
+  )
+
+  if (isRegistered) {
+    console.log(
+      `Message from ${message.author.tag} in ${message.channelId}: ${message.content}`,
+    )
+  }
 })
 
 client
