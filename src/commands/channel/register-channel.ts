@@ -13,8 +13,8 @@ export class RegisterChannelCommand extends Command {
     registry.registerChatInputCommand(
       (builder) =>
         builder
-          .setName("register-channel")
-          .setDescription("Register a channel for message listening")
+          .setName("register-ticket-channel")
+          .setDescription("Register a channel for HotBot tickets listening")
           .addChannelOption((option) =>
             option
               .setName("channel")
