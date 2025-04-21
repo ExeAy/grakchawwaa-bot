@@ -10,13 +10,23 @@ export class ChannelPGClient {
   private pool: Pool
 
   constructor() {
-    this.pool = new Pool({
-      user: process.env.PGUSER,
-      host: process.env.PGHOST,
-      database: process.env.PGDATABASE,
-      password: process.env.PGPASSWORD,
-      port: parseInt(process.env.PGPORT || "5432", 10),
-    })
+    const isProduction = process.env.NODE_ENV === "production"
+    const connectionConfig = isProduction
+      ? {
+          connectionString: process.env.PG_DATABASE_URL,
+          ssl: {
+            rejectUnauthorized: false,
+          },
+        }
+      : {
+          user: process.env.PGUSER,
+          host: process.env.PGHOST,
+          database: process.env.PGDATABASE,
+          password: process.env.PGPASSWORD,
+          port: parseInt(process.env.PGPORT || "5432", 10),
+        }
+
+    this.pool = new Pool(connectionConfig)
   }
 
   private async query<T extends QueryResultRow>(

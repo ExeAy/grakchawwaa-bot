@@ -29,16 +29,23 @@ export class PlayerPGClient {
   private pool: Pool
 
   constructor() {
-    this.pool = new Pool({
-      user: process.env.PGUSER,
-      host: process.env.PGHOST,
-      database: process.env.PGDATABASE,
-      password: process.env.PGPASSWORD,
-      port: parseInt(process.env.PGPORT || "5432", 10),
-      max: 20, // Maximum number of clients in the pool
-      idleTimeoutMillis: 30000, // Close idle clients after 30 seconds
-      connectionTimeoutMillis: 2000, // Return an error after 2 seconds if connection could not be established
-    })
+    const isProduction = process.env.NODE_ENV === "production"
+    const connectionConfig = isProduction
+      ? {
+          connectionString: process.env.PG_DATABASE_URL,
+          ssl: {
+            rejectUnauthorized: false,
+          },
+        }
+      : {
+          user: process.env.PGUSER,
+          host: process.env.PGHOST,
+          database: process.env.PGDATABASE,
+          password: process.env.PGPASSWORD,
+          port: parseInt(process.env.PGPORT || "5432", 10),
+        }
+
+    this.pool = new Pool(connectionConfig)
 
     this.pool.on("error", (err) => {
       console.error("Unexpected error on idle client", err)
