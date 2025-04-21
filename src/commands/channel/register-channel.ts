@@ -21,6 +21,14 @@ export class RegisterChannelCommand extends Command {
               .setDescription("The channel to register")
               .addChannelTypes(ChannelType.GuildText)
               .setRequired(true),
+          )
+          .addStringOption((option) =>
+            option
+              .setName("filter")
+              .setDescription(
+                "Optional text to filter messages (only messages containing this text will be processed)",
+              )
+              .setRequired(false),
           ),
       { idHints: ["1363592140055117996"] },
     )
@@ -30,6 +38,7 @@ export class RegisterChannelCommand extends Command {
     interaction: Command.ChatInputCommandInteraction,
   ) {
     const channel = interaction.options.getChannel("channel", true)
+    const filter = interaction.options.getString("filter", false)
 
     if (!interaction.guildId) {
       return interaction.reply({
@@ -42,6 +51,7 @@ export class RegisterChannelCommand extends Command {
     const success = await client.registerChannel(
       channel.id,
       interaction.guildId,
+      filter,
     )
 
     if (!success) {
@@ -52,7 +62,9 @@ export class RegisterChannelCommand extends Command {
     }
 
     return interaction.reply({
-      content: `Registered channel ${channelMention(channel.id)} for message listening.`,
+      content: `Registered channel ${channelMention(channel.id)} for message listening.${
+        filter ? ` Messages will be filtered for: "${filter}"` : ""
+      }`,
     })
   }
 }

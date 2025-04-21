@@ -12,6 +12,7 @@ const initializeDatabase = async (): Promise<void> => {
     CREATE TABLE IF NOT EXISTS channels (
       channel_id text NOT NULL PRIMARY KEY,
       guild_id text NOT NULL,
+      filter text,
       registered_at timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP
     );
   `
@@ -26,9 +27,9 @@ const initializeDatabase = async (): Promise<void> => {
   try {
     await client.connect()
     await client.query(createTablesQuery)
-    console.log("Tables created successfully.")
+    console.log("Local database tables created successfully.")
   } catch (error) {
-    console.error("Error creating tables:", error)
+    console.error("Error creating local database tables:", error)
   } finally {
     await client.end()
   }
@@ -38,8 +39,8 @@ const initializeDatabase = async (): Promise<void> => {
   try {
     setupPostgresClients()
     await initializeDatabase()
-    console.log("Database initialization complete.")
+    console.log("Local database initialization complete.")
   } catch (error) {
-    console.error("Error during database initialization:", error)
+    console.error("Error during local database initialization:", error)
   }
 })()

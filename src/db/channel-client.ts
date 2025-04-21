@@ -3,6 +3,7 @@ import { Pool, QueryResult, QueryResultRow } from "pg"
 interface ChannelRow extends QueryResultRow {
   channel_id: string
   guild_id: string
+  filter?: string | null
   registered_at: Date
 }
 
@@ -44,13 +45,15 @@ export class ChannelPGClient {
   public async registerChannel(
     channelId: string,
     guildId: string,
+    filter?: string | null,
   ): Promise<boolean> {
     try {
       await this.query(
-        `INSERT INTO channels (channel_id, guild_id)
-        VALUES ($1, $2)
-        ON CONFLICT (channel_id) DO NOTHING;`,
-        [channelId, guildId],
+        `INSERT INTO channels (channel_id, guild_id, filter)
+        VALUES ($1, $2, $3)
+        ON CONFLICT (channel_id) DO UPDATE 
+        SET filter = $3;`,
+        [channelId, guildId, filter],
       )
       return true
     } catch (error) {
@@ -85,6 +88,21 @@ export class ChannelPGClient {
     } catch (error) {
       console.error("Error checking channel registration:", error)
       return false
+    }
+  }
+
+  public async getChannelFilter(channelId: string): Promise<string | null> {
+    try {
+      const result = await this.query<ChannelRow>(
+        `SELECT filter
+        FROM channels
+        WHERE channel_id = $1;`,
+        [channelId],
+      )
+      return result.rows[0]?.filter ?? null
+    } catch (error) {
+      console.error("Error getting channel filter:", error)
+      return null
     }
   }
 

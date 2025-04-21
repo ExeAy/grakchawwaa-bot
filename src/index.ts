@@ -18,8 +18,13 @@ client.on("messageCreate", async (message) => {
   )
 
   if (isRegistered) {
+    const filter = await channelClient.getChannelFilter(message.channelId)
+    if (filter && !message.content.includes(filter)) {
+      return
+    }
+
     console.log(
-      `Message from (${message.author.tag}, ${message.author.id}, ${message.author.username}, ${message.author.discriminator}) in (${message.channelId}): ${message.content}`,
+      `Message from ${message.author.tag}, ${message.author.id} in ${message.channelId}: ${message.content}`,
     )
   }
 })
