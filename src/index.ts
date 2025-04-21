@@ -19,7 +19,7 @@ client.on("messageCreate", async (message) => {
 
   if (isRegistered) {
     console.log(
-      `Message from ${message.author.tag} in ${message.channelId}: ${message.content}`,
+      `Message from (${message.author.tag}, ${message.author.id}, ${message.author.username}, ${message.author.discriminator}) in (${message.channelId}): ${message.content}`,
     )
   }
 })
