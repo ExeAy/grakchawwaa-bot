@@ -11,8 +11,8 @@
   "scripts": {
     "build": "tsc",
     "start": "node dist/index.js",
-    "setupLocalDB": "ts-node src/setupLocalDB.ts",
-    "setupHerokuDB": "dotenvx run -f .env.prod -- ts-node src/setupHerokuDB.ts",
+    "setupLocalDB": "ts-node infra/setupLocalDB.ts",
+    "setupHerokuDB": "dotenvx run -f .env.prod -- ts-node infra/setupHerokuDB.ts",
     "postinstall": "npm run build",
     "dev": "dotenvx run -f .env.dev -- ts-node src/index.ts",
     "prod": "dotenvx run -f .env.prod -- ts-node src/index.ts",

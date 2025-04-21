@@ -1,5 +1,5 @@
 import { Client } from "pg"
-import { setupPostgresClients } from "./db/postgres-client"
+import { setupPostgresClients } from "../src/db/postgres-client"
 
 const initializeDatabase = async (): Promise<void> => {
   const createTablesQuery = `

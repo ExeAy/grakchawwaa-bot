@@ -1,5 +1,5 @@
 import { Client } from "pg"
-import { setupPostgresClients } from "./db/postgres-client"
+import { setupPostgresClients } from "../src/db/postgres-client"
 
 const initializeHerokuDatabase = async (): Promise<void> => {
   const createTablesQuery = `
@@ -15,6 +15,7 @@ const initializeHerokuDatabase = async (): Promise<void> => {
       filter text,
       registered_at timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP
     );
+  
   `
 
   const client = new Client({
@@ -26,10 +27,10 @@ const initializeHerokuDatabase = async (): Promise<void> => {
 
   try {
     await client.connect()
+    // First create tables if they don't exist
     await client.query(createTablesQuery)
-    console.log("Heroku database tables created successfully.")
   } catch (error) {
-    console.error("Error creating Heroku database tables:", error)
+    console.error("Error updating Heroku database tables:", error)
   } finally {
     await client.end()
   }
