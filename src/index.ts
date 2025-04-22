@@ -1,4 +1,3 @@
-import { container } from "@sapphire/pieces"
 import { setupPostgresClients } from "./db/postgres-client"
 import { DiscordBotClient } from "./discord-bot-client"
 
@@ -7,26 +6,6 @@ setupPostgresClients()
 const client = new DiscordBotClient()
 client.on("ready", () => {
   console.log(`Logged in as ${client.user?.tag}!`)
-})
-
-client.on("messageCreate", async (message) => {
-  if (message.author.bot) return
-
-  const channelClient = container.channelClient
-  const isRegistered = await channelClient.isChannelRegistered(
-    message.channelId,
-  )
-
-  if (isRegistered) {
-    const filter = await channelClient.getChannelFilter(message.channelId)
-    if (filter && !message.content.includes(filter)) {
-      return
-    }
-
-    console.log(
-      `Message from ${message.author.tag}, ${message.author.id} in ${message.channelId}: ${message.content}`,
-    )
-  }
 })
 
 client

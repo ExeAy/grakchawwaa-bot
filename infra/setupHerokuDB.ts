@@ -9,13 +9,14 @@ const initializeHerokuDatabase = async (): Promise<void> => {
       alt_ally_codes char(9)[]
     );
 
-    CREATE TABLE IF NOT EXISTS channels (
-      channel_id text NOT NULL PRIMARY KEY,
+    DROP TABLE IF EXISTS channels;
+
+    CREATE TABLE IF NOT EXISTS ticketViolations (
       guild_id text NOT NULL,
-      filter text,
-      registered_at timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP
+      date timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      players text[] NOT NULL,
+      PRIMARY KEY (guild_id, date)
     );
-  
   `
 
   const client = new Client({
@@ -27,10 +28,10 @@ const initializeHerokuDatabase = async (): Promise<void> => {
 
   try {
     await client.connect()
-    // First create tables if they don't exist
     await client.query(createTablesQuery)
+    console.log("Heroku database tables created successfully.")
   } catch (error) {
-    console.error("Error updating Heroku database tables:", error)
+    console.error("Error creating Heroku database tables:", error)
   } finally {
     await client.end()
   }

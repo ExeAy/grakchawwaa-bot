@@ -16,8 +16,8 @@
     "postinstall": "npm run build",
     "dev": "dotenvx run -f .env.dev -- ts-node src/index.ts",
     "prod": "dotenvx run -f .env.prod -- ts-node src/index.ts",
-    "reset-commands-dev": "dotenvx run -f .env.dev -- ts-node src/reset-commands.ts",
-    "reset-commands-prod": "dotenvx run -f .env.prod -- ts-node src/reset-commands.ts",
+    "reset-commands-dev": "dotenvx run -f .env.dev -- ts-node infra/reset-commands.ts",
+    "reset-commands-prod": "dotenvx run -f .env.prod -- ts-node infra/reset-commands.ts",
     "see-heroku-log": "heroku logs --tail --app grakchawwaa --dyno=worker.1",
     "lint": "eslint '**/*.ts'",
     "format": "prettier --write \"src/**/*.ts\""
