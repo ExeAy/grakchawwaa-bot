@@ -1,0 +1,6 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+when refactoring existing code, keep jsdoc comments intact
