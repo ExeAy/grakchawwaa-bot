@@ -28,6 +28,7 @@
     "@sapphire/discord.js-utilities": "^7.3.2",
     "@sapphire/framework": "^5.3.2",
     "@sapphire/pieces": "^4.3.1",
+    "@swgoh-utils/comlink": "^1.4.1",
     "discord.js": "14.x",
     "pg": "^8.13.1"
   },

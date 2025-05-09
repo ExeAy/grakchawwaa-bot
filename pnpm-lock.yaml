@@ -17,6 +17,9 @@ importers:
       '@sapphire/pieces':
         specifier: ^4.3.1
         version: 4.3.2
+      '@swgoh-utils/comlink':
+        specifier: ^1.4.1
+        version: 1.4.1
       discord.js:
         specifier: 14.x
         version: 14.18.0
@@ -36,6 +39,9 @@ importers:
       '@types/pg':
         specifier: ^8.11.10
         version: 8.11.13
+      comlink:
+        specifier: link:@types/swgoh-utils/comlink
+        version: link:@types/swgoh-utils/comlink
       eslint:
         specifier: ^9.17.0
         version: 9.25.0
@@ -595,6 +601,9 @@ packages:
   '@sindresorhus/is@4.6.0':
     resolution: {integrity: sha512-t09vSN3MdfsyCHoFcTRCH/iUtG7OJ0CsjzB8cjAmKc/va/kIgeDI/TxsigdncE/4be734m0cvIYwNaV4i2XqAw==}
     engines: {node: '>=10'}
+
+  '@swgoh-utils/comlink@1.4.1':
+    resolution: {integrity: sha512-RX5I00tco1h+ZZbj32zDXkJw0C55ZiZRykGyb4OrWJTXCpYHCNT+/A4J+GM8lgYTdj51DS1DqZoXqR2/VvIXWg==}
 
   '@szmarczak/http-timer@4.0.6':
     resolution: {integrity: sha512-4BAffykYOgO+5nzBWYwE3W90sBgLJoUPRWWcL8wlyiM8IB8ipJz3UMJ9KXQd1RKQXpKp8Tutn80HZtWsu2u76w==}
@@ -3475,6 +3484,10 @@ snapshots:
   '@sapphire/utilities@3.18.2': {}
 
   '@sindresorhus/is@4.6.0': {}
+
+  '@swgoh-utils/comlink@1.4.1':
+    dependencies:
+      got: 11.8.6
 
   '@szmarczak/http-timer@4.0.6':
     dependencies:

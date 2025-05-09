@@ -1,7 +1,9 @@
+import { setupComlinkClient } from "./comlink-service"
 import { setupPostgresClients } from "./db/postgres-client"
 import { DiscordBotClient } from "./discord-bot-client"
 
 setupPostgresClients()
+setupComlinkClient()
 
 const client = new DiscordBotClient()
 client.on("ready", () => {
