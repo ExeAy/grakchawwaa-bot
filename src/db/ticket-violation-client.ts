@@ -1,6 +1,6 @@
 import { Pool, QueryResult, QueryResultRow } from "pg"
 
-interface TicketViolationRow extends QueryResultRow {
+export interface TicketViolationRow extends QueryResultRow {
   guild_id: string
   date: Date
   players: string[]
@@ -17,6 +17,20 @@ const QUERIES = {
     WHERE guild_id = $1
     ORDER BY date DESC
     LIMIT 7;
+  `,
+  GET_WEEKLY_VIOLATIONS: `
+    SELECT guild_id, date, players
+    FROM ticketViolations
+    WHERE guild_id = $1
+      AND date >= NOW() - INTERVAL '7 days'
+    ORDER BY date DESC;
+  `,
+  GET_MONTHLY_VIOLATIONS: `
+    SELECT guild_id, date, players
+    FROM ticketViolations
+    WHERE guild_id = $1
+      AND date >= NOW() - INTERVAL '90 days'
+    ORDER BY date DESC;
   `,
 } as const
 
@@ -98,6 +112,46 @@ export class TicketViolationPGClient {
       return result.rows
     } catch (error) {
       console.error("Error getting recent ticket violations:", error)
+      return []
+    }
+  }
+
+  public async getWeeklyViolations(
+    guildId: string,
+  ): Promise<TicketViolationRow[]> {
+    if (!guildId) {
+      console.error("Invalid guild ID")
+      return []
+    }
+
+    try {
+      const result = await this.query<TicketViolationRow>(
+        QUERIES.GET_WEEKLY_VIOLATIONS,
+        [guildId],
+      )
+      return result.rows
+    } catch (error) {
+      console.error("Error getting weekly ticket violations:", error)
+      return []
+    }
+  }
+
+  public async getMonthlyViolations(
+    guildId: string,
+  ): Promise<TicketViolationRow[]> {
+    if (!guildId) {
+      console.error("Invalid guild ID")
+      return []
+    }
+
+    try {
+      const result = await this.query<TicketViolationRow>(
+        QUERIES.GET_MONTHLY_VIOLATIONS,
+        [guildId],
+      )
+      return result.rows
+    } catch (error) {
+      console.error("Error getting monthly ticket violations:", error)
       return []
     }
   }

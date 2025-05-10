@@ -2,6 +2,7 @@ import { container } from "@sapphire/pieces"
 import { ComlinkGuildData, ComlinkGuildMember } from "@swgoh-utils/comlink"
 import { TextChannel } from "discord.js"
 import { DiscordBotClient } from "../discord-bot-client"
+import { ViolationSummaryService } from "./violation-summary"
 
 interface TicketViolator {
   id: string
@@ -11,6 +12,7 @@ interface TicketViolator {
 
 export class TicketMonitorService {
   private client: DiscordBotClient
+  private summaryService: ViolationSummaryService
   private checkInterval: NodeJS.Timeout | null = null
   private static TICKET_THRESHOLD = 600 // Ticket threshold for violation
   private static CHECK_FREQUENCY = 60 * 1000 // Check every minute
@@ -19,6 +21,7 @@ export class TicketMonitorService {
 
   constructor(client: DiscordBotClient) {
     this.client = client
+    this.summaryService = new ViolationSummaryService(client)
   }
 
   public start(): void {
@@ -61,7 +64,10 @@ export class TicketMonitorService {
         // Check if we're 5 minutes past the reset to update next refresh time
         const timeSinceReset = now - refreshTime
         if (timeSinceReset >= TicketMonitorService.REFRESH_UPDATE_DELAY) {
-          await this.updateNextRefreshTime(guild.guild_id, guild.channel_id)
+          await this.handlePostRefreshOperations(
+            guild.guild_id,
+            guild.channel_id,
+          )
         }
       }
     } catch (error) {
@@ -143,19 +149,44 @@ export class TicketMonitorService {
     }
   }
 
-  private async updateNextRefreshTime(
+  private async handlePostRefreshOperations(
     guildId: string,
     channelId: string,
   ): Promise<void> {
     try {
-      // Fetch the new guild data to get the next refresh time
-      const guildData = await container.comlinkClient.getGuild(guildId, true)
+      const guildData = await this.fetchGuildData(guildId)
       if (!guildData?.guild?.nextChallengesRefresh) {
-        console.error(`Failed to get new refresh time for guild ${guildId}`)
+        console.error(`Failed to get refresh time for guild ${guildId}`)
         return
       }
 
-      const newRefreshTime = guildData.guild.nextChallengesRefresh
+      // Update the refresh time
+      await this.updateNextRefreshTime(
+        guildId,
+        channelId,
+        guildData.guild.nextChallengesRefresh,
+      )
+
+      // Generate summaries if needed
+      await this.checkAndGenerateSummaries(
+        guildId,
+        channelId,
+        guildData.guild.profile.name,
+      )
+    } catch (error) {
+      console.error(
+        `Error handling post-refresh operations for guild ${guildId}:`,
+        error,
+      )
+    }
+  }
+
+  private async updateNextRefreshTime(
+    guildId: string,
+    channelId: string,
+    newRefreshTime: string,
+  ): Promise<void> {
+    try {
       await container.ticketChannelClient.registerChannel(
         guildId,
         channelId,
@@ -172,6 +203,38 @@ export class TicketMonitorService {
         `Error updating next refresh time for guild ${guildId}:`,
         error,
       )
+    }
+  }
+
+  private async checkAndGenerateSummaries(
+    guildId: string,
+    channelId: string,
+    guildName: string,
+  ): Promise<void> {
+    try {
+      const now = new Date()
+      const isWeeklySummaryTime = now.getDay() === 0 // Sunday
+      const isLastDayOfMonth =
+        now.getDate() ===
+        new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate()
+
+      if (isWeeklySummaryTime) {
+        await this.summaryService.generateWeeklySummary(
+          guildId,
+          channelId,
+          guildName,
+        )
+      }
+
+      if (isLastDayOfMonth) {
+        await this.summaryService.generateMonthlySummary(
+          guildId,
+          channelId,
+          guildName,
+        )
+      }
+    } catch (error) {
+      console.error(`Error generating summaries for guild ${guildId}:`, error)
     }
   }
 
