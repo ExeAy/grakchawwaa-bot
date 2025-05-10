@@ -1,6 +1,8 @@
 import { container } from "@sapphire/pieces"
 import { TextChannel } from "discord.js"
+import { TicketViolationRow } from "../db/ticket-violation-client"
 import { DiscordBotClient } from "../discord-bot-client"
+import { sendLongMessage } from "../utils/discord-utils"
 
 interface ViolationSummary {
   playerName: string
@@ -79,7 +81,7 @@ export class ViolationSummaryService {
   private async sendSummaryReport(
     channelId: string,
     guildName: string,
-    violations: { date: Date; players: string[] }[],
+    violations: TicketViolationRow[],
     reportType: "Weekly" | "Monthly",
     daysInPeriod: number,
   ): Promise<void> {
@@ -92,8 +94,33 @@ export class ViolationSummaryService {
         return
       }
 
+      if (!violations.length) {
+        console.error("No violations provided for summary report")
+        return
+      }
+
+      const firstViolation = violations[0]!
+      // Get guild data to fetch player names
+      const guildData = await container.comlinkClient.getGuild(
+        firstViolation.guild_id,
+        true,
+      )
+      if (!guildData?.guild?.member) {
+        console.error("Could not fetch guild data for player names")
+        return
+      }
+
+      // Create player ID to name mapping
+      const playerNames = new Map(
+        guildData.guild.member.map((m) => [m.playerId, m.playerName]),
+      )
+
       // Calculate player statistics
-      const playerStats = this.calculatePlayerStats(violations, daysInPeriod)
+      const playerStats = this.calculatePlayerStats(
+        violations,
+        daysInPeriod,
+        playerNames,
+      )
 
       // Sort players by violation count (descending)
       const sortedStats = [...playerStats.values()].sort(
@@ -119,7 +146,10 @@ export class ViolationSummaryService {
       )
       message += `\nTotal Guild Missing Tickets: ${totalMissingTickets}`
 
-      await channel.send(message)
+      await sendLongMessage(channel, message, {
+        preserveFormat: true,
+        splitOn: ["\n\n", "\n"],
+      })
     } catch (error) {
       console.error(
         `Error sending ${reportType.toLowerCase()} summary to channel ${channelId}:`,
@@ -129,8 +159,9 @@ export class ViolationSummaryService {
   }
 
   private calculatePlayerStats(
-    violations: { date: Date; players: string[] }[],
+    violations: TicketViolationRow[],
     daysInPeriod: number,
+    playerNames: Map<string, string>,
   ): Map<string, ViolationSummary> {
     const playerStats = new Map<string, ViolationSummary>()
 
@@ -138,7 +169,7 @@ export class ViolationSummaryService {
     for (const violation of violations) {
       for (const playerId of violation.players) {
         const stats = playerStats.get(playerId) || {
-          playerName: playerId, // We'll need to fetch actual names from the guild data
+          playerName: playerNames.get(playerId) || playerId, // Fallback to ID if name not found
           violationCount: 0,
           averageTickets: 0,
           totalMissingTickets: 0,

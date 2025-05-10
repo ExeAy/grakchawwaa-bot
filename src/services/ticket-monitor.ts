@@ -2,6 +2,7 @@ import { container } from "@sapphire/pieces"
 import { ComlinkGuildData, ComlinkGuildMember } from "@swgoh-utils/comlink"
 import { TextChannel } from "discord.js"
 import { DiscordBotClient } from "../discord-bot-client"
+import { sendLongMessage } from "../utils/discord-utils"
 import { ViolationSummaryService } from "./violation-summary"
 
 interface TicketViolator {
@@ -27,11 +28,12 @@ export class TicketMonitorService {
   public start(): void {
     console.log("Starting ticket monitor service")
 
+    // TODO: To be removed once the service is working
     this.checkGuildResetTimes()
     // Check every minute
-    this.checkInterval = setInterval(() => {
-      this.checkGuildResetTimes()
-    }, TicketMonitorService.CHECK_FREQUENCY)
+    // this.checkInterval = setInterval(() => {
+    //   this.checkGuildResetTimes()
+    // }, TicketMonitorService.CHECK_FREQUENCY)
   }
 
   public stop(): void {
@@ -53,22 +55,19 @@ export class TicketMonitorService {
 
         // Check if we're within 2 minutes of the reset for ticket collection
         const timeUntilReset = refreshTime - now
-        if (
-          timeUntilReset > 0 &&
-          timeUntilReset <= TicketMonitorService.CHECK_BEFORE_RESET
-        ) {
-          // It's time to check ticket counts
-          await this.collectTicketData(guild.guild_id, guild.channel_id)
-        }
+        // if (
+        //   timeUntilReset > 0 &&
+        //   timeUntilReset <= TicketMonitorService.CHECK_BEFORE_RESET
+        // ) {
+        // It's time to check ticket counts
+        await this.collectTicketData(guild.guild_id, guild.channel_id)
+        // }
 
         // Check if we're 5 minutes past the reset to update next refresh time
         const timeSinceReset = now - refreshTime
-        if (timeSinceReset >= TicketMonitorService.REFRESH_UPDATE_DELAY) {
-          await this.handlePostRefreshOperations(
-            guild.guild_id,
-            guild.channel_id,
-          )
-        }
+        // if (timeSinceReset >= TicketMonitorService.REFRESH_UPDATE_DELAY) {
+        await this.handlePostRefreshOperations(guild.guild_id, guild.channel_id)
+        // }
       }
     } catch (error) {
       console.error("Error checking guild reset times:", error)
@@ -218,7 +217,7 @@ export class TicketMonitorService {
         now.getDate() ===
         new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate()
 
-      if (isWeeklySummaryTime) {
+      if (true) {
         await this.summaryService.generateWeeklySummary(
           guildId,
           channelId,
@@ -226,7 +225,7 @@ export class TicketMonitorService {
         )
       }
 
-      if (isLastDayOfMonth) {
+      if (true) {
         await this.summaryService.generateMonthlySummary(
           guildId,
           channelId,
@@ -266,7 +265,10 @@ export class TicketMonitorService {
 
       message += `\nTotal missing tickets: ${sortedViolators.reduce((sum, v) => sum + (600 - v.tickets), 0)}`
 
-      await channel.send(message)
+      await sendLongMessage(channel, message, {
+        preserveFormat: true,
+        splitOn: ["\n\n", "\n"],
+      })
     } catch (error) {
       console.error(
         `Error sending violation notification to channel ${channelId}:`,
