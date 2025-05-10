@@ -20,7 +20,8 @@ const initializeHerokuDatabase = async (): Promise<void> => {
 
     CREATE TABLE IF NOT EXISTS ticketCollectionChannels (
       guild_id text NOT NULL PRIMARY KEY,
-      channel_id text NOT NULL
+      channel_id text NOT NULL,
+      next_refresh_time text NOT NULL
     );
   `
 

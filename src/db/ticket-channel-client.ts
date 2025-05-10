@@ -3,19 +3,24 @@ import { Pool, QueryResult, QueryResultRow } from "pg"
 interface TicketChannelRow extends QueryResultRow {
   guild_id: string
   channel_id: string
+  next_refresh_time: string
 }
 
 const QUERIES = {
   REGISTER_CHANNEL: `
-    INSERT INTO ticketCollectionChannels (guild_id, channel_id)
-    VALUES ($1, $2)
+    INSERT INTO ticketCollectionChannels (guild_id, channel_id, next_refresh_time)
+    VALUES ($1, $2, $3)
     ON CONFLICT (guild_id) DO UPDATE 
-    SET channel_id = $2;
+    SET channel_id = $2, next_refresh_time = $3;
   `,
   GET_CHANNEL: `
-    SELECT guild_id, channel_id
+    SELECT guild_id, channel_id, next_refresh_time
     FROM ticketCollectionChannels
     WHERE guild_id = $1;
+  `,
+  GET_ALL_GUILDS: `
+    SELECT guild_id, channel_id, next_refresh_time
+    FROM ticketCollectionChannels;
   `,
 } as const
 
@@ -65,14 +70,19 @@ export class TicketChannelPGClient {
   public async registerChannel(
     guildId: string,
     channelId: string,
+    nextRefreshTime: string,
   ): Promise<boolean> {
-    if (!guildId || !channelId) {
-      console.error("Invalid guild or channel ID")
+    if (!guildId || !channelId || !nextRefreshTime) {
+      console.error("Invalid guild, channel ID, or refresh time")
       return false
     }
 
     try {
-      await this.query(QUERIES.REGISTER_CHANNEL, [guildId, channelId])
+      await this.query(QUERIES.REGISTER_CHANNEL, [
+        guildId,
+        channelId,
+        nextRefreshTime,
+      ])
       return true
     } catch (error) {
       console.error("Error registering ticket collection channel:", error)
@@ -80,7 +90,7 @@ export class TicketChannelPGClient {
     }
   }
 
-  public async getChannelForGuild(guildId: string): Promise<string | null> {
+  public async getGuildData(guildId: string): Promise<TicketChannelRow | null> {
     if (!guildId) {
       console.error("Invalid guild ID")
       return null
@@ -96,10 +106,20 @@ export class TicketChannelPGClient {
       }
 
       const row = result.rows[0]
-      return row?.channel_id || null
+      return row || null
     } catch (error) {
       console.error("Error getting ticket collection channel:", error)
       return null
+    }
+  }
+
+  public async getAllGuilds(): Promise<TicketChannelRow[]> {
+    try {
+      const result = await this.query<TicketChannelRow>(QUERIES.GET_ALL_GUILDS)
+      return result.rows
+    } catch (error) {
+      console.error("Error getting all guild ticket collections:", error)
+      return []
     }
   }
 }

@@ -63,6 +63,7 @@ export class RegisterTicketCollectionCommand extends Command {
     try {
       await interaction.deferReply()
 
+      // First get the player data to find the guild ID
       const playerData = await container.comlinkClient.getPlayer(allyCode)
       if (!playerData?.guildId) {
         return interaction.editReply({
@@ -73,10 +74,21 @@ export class RegisterTicketCollectionCommand extends Command {
       const guildId = playerData.guildId
       const guildName = playerData.guildName || "Unknown Guild"
 
+      // Now get the guild data to get the nextChallengesRefresh time
+      const guildData = await container.comlinkClient.getGuild(guildId, true)
+      if (!guildData?.guild?.nextChallengesRefresh) {
+        return interaction.editReply({
+          content: `Could not retrieve guild refresh time for guild: ${guildName}. Please try again later.`,
+        })
+      }
+
+      const nextRefreshTime = guildData.guild.nextChallengesRefresh
+
       // Register the channel for the guild
       const success = await container.ticketChannelClient.registerChannel(
         guildId,
         channel.id,
+        nextRefreshTime,
       )
 
       if (!success) {
@@ -86,8 +98,12 @@ export class RegisterTicketCollectionCommand extends Command {
         })
       }
 
+      // Format the refresh time for display
+      const refreshDate = new Date(parseInt(nextRefreshTime) * 1000)
+      const refreshTimeFormatted = refreshDate.toLocaleString()
+
       return interaction.editReply({
-        content: `Successfully registered ${channelMention(channel.id)} for ticket collection monitoring for guild: ${guildName}`,
+        content: `Successfully registered ${channelMention(channel.id)} for ticket collection monitoring for guild: ${guildName}\Next ticket reset time: ${refreshTimeFormatted}`,
       })
     } catch (error) {
       console.error("Error in register-ticket-collection command:", error)

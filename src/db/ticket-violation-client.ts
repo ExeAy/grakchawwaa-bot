@@ -1,0 +1,104 @@
+import { Pool, QueryResult, QueryResultRow } from "pg"
+
+interface TicketViolationRow extends QueryResultRow {
+  guild_id: string
+  date: Date
+  players: string[]
+}
+
+const QUERIES = {
+  RECORD_VIOLATIONS: `
+    INSERT INTO ticketViolations (guild_id, date, players)
+    VALUES ($1, $2, $3);
+  `,
+  GET_RECENT_VIOLATIONS: `
+    SELECT guild_id, date, players
+    FROM ticketViolations
+    WHERE guild_id = $1
+    ORDER BY date DESC
+    LIMIT 7;
+  `,
+} as const
+
+export class TicketViolationPGClient {
+  private pool: Pool
+
+  constructor() {
+    const isProduction = process.env.NODE_ENV === "production"
+    const connectionConfig = isProduction
+      ? {
+          connectionString: process.env.PG_DATABASE_URL,
+          ssl: {
+            rejectUnauthorized: false,
+          },
+        }
+      : {
+          user: process.env.PGUSER,
+          host: process.env.PGHOST,
+          database: process.env.PGDATABASE,
+          password: process.env.PGPASSWORD,
+          port: parseInt(process.env.PGPORT || "5432", 10),
+        }
+
+    this.pool = new Pool(connectionConfig)
+
+    this.pool.on("error", (err) => {
+      console.error("Unexpected error on idle client", err)
+    })
+  }
+
+  public async disconnect(): Promise<void> {
+    await this.pool.end()
+  }
+
+  private async query<T extends QueryResultRow>(
+    text: string,
+    params?: unknown[],
+  ): Promise<QueryResult<T>> {
+    const client = await this.pool.connect()
+    try {
+      return await client.query<T>(text, params)
+    } finally {
+      client.release()
+    }
+  }
+
+  public async recordViolations(
+    guildId: string,
+    players: string[],
+  ): Promise<boolean> {
+    if (!guildId || !players.length) {
+      console.error("Invalid guild or empty players array")
+      return false
+    }
+
+    try {
+      const now = new Date()
+      await this.query(QUERIES.RECORD_VIOLATIONS, [guildId, now, players])
+      return true
+    } catch (error) {
+      console.error("Error recording ticket violations:", error)
+      return false
+    }
+  }
+
+  public async getRecentViolations(
+    guildId: string,
+  ): Promise<TicketViolationRow[]> {
+    if (!guildId) {
+      console.error("Invalid guild ID")
+      return []
+    }
+
+    try {
+      const result = await this.query<TicketViolationRow>(
+        QUERIES.GET_RECENT_VIOLATIONS,
+        [guildId],
+      )
+      return result.rows
+    } catch (error) {
+      console.error("Error getting recent ticket violations:", error)
+      return []
+    }
+  }
+}

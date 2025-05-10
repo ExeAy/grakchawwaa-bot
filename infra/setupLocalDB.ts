@@ -3,11 +3,15 @@ import { setupPostgresClients } from "../src/db/postgres-client"
 
 const initializeDatabase = async (): Promise<void> => {
   const createTablesQuery = `
+
     CREATE TABLE IF NOT EXISTS players (
       discord_id text NOT NULL PRIMARY KEY,
       ally_code char(9) NOT NULL,
       alt_ally_codes char(9)[]
     );
+    
+    DROP TABLE IF EXISTS ticketViolations;
+    DROP TABLE IF EXISTS ticketCollectionChannels;
 
     CREATE TABLE IF NOT EXISTS ticketViolations (
       guild_id text NOT NULL,
@@ -18,7 +22,8 @@ const initializeDatabase = async (): Promise<void> => {
 
     CREATE TABLE IF NOT EXISTS ticketCollectionChannels (
       guild_id text NOT NULL PRIMARY KEY,
-      channel_id text NOT NULL
+      channel_id text NOT NULL,
+      next_refresh_time text NOT NULL
     );
   `
 

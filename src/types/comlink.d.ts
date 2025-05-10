@@ -63,7 +63,7 @@ declare module "@swgoh-utils/comlink" {
       member: ComlinkGuildMember[]
       recentRaidResult: ComlinkGuildRaidResult[]
       profile: ComlinkGuildProfile
-      nextChallengeRefresh: string
+      nextChallengesRefresh: string
       // ...other fields as needed
     }
   }
