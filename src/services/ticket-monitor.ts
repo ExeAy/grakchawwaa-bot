@@ -28,12 +28,10 @@ export class TicketMonitorService {
   public start(): void {
     console.log("Starting ticket monitor service")
 
-    // TODO: To be removed once the service is working
-    this.checkGuildResetTimes()
     // Check every minute
-    // this.checkInterval = setInterval(() => {
-    //   this.checkGuildResetTimes()
-    // }, TicketMonitorService.CHECK_FREQUENCY)
+    this.checkInterval = setInterval(() => {
+      this.checkGuildResetTimes()
+    }, TicketMonitorService.CHECK_FREQUENCY)
   }
 
   public stop(): void {
@@ -55,19 +53,22 @@ export class TicketMonitorService {
 
         // Check if we're within 2 minutes of the reset for ticket collection
         const timeUntilReset = refreshTime - now
-        // if (
-        //   timeUntilReset > 0 &&
-        //   timeUntilReset <= TicketMonitorService.CHECK_BEFORE_RESET
-        // ) {
-        // It's time to check ticket counts
-        await this.collectTicketData(guild.guild_id, guild.channel_id)
-        // }
+        if (
+          timeUntilReset > 0 &&
+          timeUntilReset <= TicketMonitorService.CHECK_BEFORE_RESET
+        ) {
+          // It's time to check ticket counts
+          await this.collectTicketData(guild.guild_id, guild.channel_id)
+        }
 
         // Check if we're 5 minutes past the reset to update next refresh time
         const timeSinceReset = now - refreshTime
-        // if (timeSinceReset >= TicketMonitorService.REFRESH_UPDATE_DELAY) {
-        await this.handlePostRefreshOperations(guild.guild_id, guild.channel_id)
-        // }
+        if (timeSinceReset >= TicketMonitorService.REFRESH_UPDATE_DELAY) {
+          await this.handlePostRefreshOperations(
+            guild.guild_id,
+            guild.channel_id,
+          )
+        }
       }
     } catch (error) {
       console.error("Error checking guild reset times:", error)
@@ -94,7 +95,10 @@ export class TicketMonitorService {
   private async fetchGuildData(
     guildId: string,
   ): Promise<ComlinkGuildData | null> {
-    const guildData = await container.comlinkClient.getGuild(guildId, true)
+    const guildData = await container.cachedComlinkClient.getGuild(
+      guildId,
+      true,
+    )
     if (!guildData?.guild?.member) {
       console.error(`No member data found for guild ${guildId}`)
       return null

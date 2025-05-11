@@ -101,7 +101,7 @@ export class ViolationSummaryService {
 
       const firstViolation = violations[0]!
       // Get guild data to fetch player names
-      const guildData = await container.comlinkClient.getGuild(
+      const guildData = await container.cachedComlinkClient.getGuild(
         firstViolation.guild_id,
         true,
       )
@@ -124,7 +124,7 @@ export class ViolationSummaryService {
 
       // Sort players by violation count (descending)
       const sortedStats = [...playerStats.values()].sort(
-        (a, b) => b.violationCount - a.violationCount,
+        (a, b) => b.averageTickets - a.averageTickets,
       )
 
       // Create the summary message
