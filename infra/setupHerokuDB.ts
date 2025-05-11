@@ -17,6 +17,34 @@ const initializeHerokuDatabase = async (): Promise<void> => {
       players text[] NOT NULL,
       PRIMARY KEY (guild_id, date)
     );
+
+    CREATE TABLE IF NOT EXISTS ticketCollectionChannels (
+      guild_id text NOT NULL PRIMARY KEY,
+      channel_id text NOT NULL,
+      next_refresh_time text NOT NULL
+    );
+
+    -- Create a function to delete old records
+    CREATE OR REPLACE FUNCTION delete_old_ticket_violations() RETURNS trigger
+    LANGUAGE plpgsql
+    AS $$
+    BEGIN
+      DELETE FROM ticketViolations
+      WHERE date < NOW() - INTERVAL '3 months';
+      RETURN NULL;
+    END;
+    $$;
+
+    -- Create or replace the trigger
+    DROP TRIGGER IF EXISTS cleanup_old_violations ON ticketViolations;
+    
+    CREATE TRIGGER cleanup_old_violations
+      AFTER INSERT ON ticketViolations
+      EXECUTE PROCEDURE delete_old_ticket_violations();
+
+    -- Initial cleanup of old records
+    DELETE FROM ticketViolations
+    WHERE date < NOW() - INTERVAL '3 months';
   `
 
   const client = new Client({

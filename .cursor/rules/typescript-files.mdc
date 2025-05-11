@@ -16,3 +16,5 @@ functions and methods should not have more than 4 parameters
 functions should not have more than 50 executable lines
 
 lines should not be more than 80 characters
+
+you only write code that will be used, i.e. no unreachable code, no unused functions et.c.
