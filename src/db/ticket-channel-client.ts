@@ -22,6 +22,10 @@ const QUERIES = {
     SELECT guild_id, channel_id, next_refresh_time
     FROM ticketCollectionChannels;
   `,
+  UNREGISTER_CHANNEL: `
+    DELETE FROM ticketCollectionChannels
+    WHERE guild_id = $1;
+  `,
 } as const
 
 export class TicketChannelPGClient {
@@ -120,6 +124,40 @@ export class TicketChannelPGClient {
     } catch (error) {
       console.error("Error getting all guild ticket collections:", error)
       return []
+    }
+  }
+
+  public async getGuildChannel(
+    guildId: string,
+  ): Promise<TicketChannelRow | null> {
+    if (!guildId) {
+      console.error("Invalid guild ID")
+      return null
+    }
+
+    try {
+      const result = await this.query<TicketChannelRow>(QUERIES.GET_CHANNEL, [
+        guildId,
+      ])
+      return result.rows[0] || null
+    } catch (error) {
+      console.error("Error getting ticket collection channel:", error)
+      return null
+    }
+  }
+
+  public async unregisterChannel(guildId: string): Promise<boolean> {
+    if (!guildId) {
+      console.error("Invalid guild ID")
+      return false
+    }
+
+    try {
+      await this.query(QUERIES.UNREGISTER_CHANNEL, [guildId])
+      return true
+    } catch (error) {
+      console.error("Error unregistering ticket collection channel:", error)
+      return false
     }
   }
 }

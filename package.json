@@ -4,7 +4,7 @@
   "version": "1.0.0",
   "description": "Discord example app",
   "main": "src/index.ts",
-  "packageManager": "pnpm@10.2.0",
+  "packageManager": "pnpm@10.10.0",
   "engines": {
     "node": ">=20.x"
   },

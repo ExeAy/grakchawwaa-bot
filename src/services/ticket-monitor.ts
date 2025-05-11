@@ -221,7 +221,7 @@ export class TicketMonitorService {
         now.getDate() ===
         new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate()
 
-      if (true) {
+      if (isWeeklySummaryTime) {
         await this.summaryService.generateWeeklySummary(
           guildId,
           channelId,
@@ -229,7 +229,7 @@ export class TicketMonitorService {
         )
       }
 
-      if (true) {
+      if (isLastDayOfMonth) {
         await this.summaryService.generateMonthlySummary(
           guildId,
           channelId,
