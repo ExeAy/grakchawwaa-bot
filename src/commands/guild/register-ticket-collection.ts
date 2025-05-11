@@ -1,6 +1,40 @@
 import { Command } from "@sapphire/framework"
 import { container } from "@sapphire/pieces"
-import { channelMention } from "discord.js"
+import { channelMention, TextChannel } from "discord.js"
+
+// Types for Comlink data
+interface ComlinkGuildMember {
+  playerId: string
+  memberLevel: number
+}
+
+interface ComlinkPlayerData {
+  playerId: string
+  guildId?: string
+  guildName?: string
+}
+
+interface ComlinkGuildData {
+  member?: ComlinkGuildMember[]
+  nextChallengesRefresh?: string
+}
+
+interface CommandResponse<T = undefined> {
+  success: boolean
+  response: {
+    content: string
+    ephemeral?: boolean
+  }
+  value?: T
+}
+
+interface GuildRegistrationData {
+  guildId: string
+  guildName: string
+  nextRefreshTime: string
+  playerData: ComlinkPlayerData
+  guild: ComlinkGuildData
+}
 
 export class RegisterTicketCollectionCommand extends Command {
   public constructor(context: Command.LoaderContext, options: Command.Options) {
@@ -12,7 +46,7 @@ export class RegisterTicketCollectionCommand extends Command {
   public override registerApplicationCommands(registry: Command.Registry) {
     registry.registerChatInputCommand(
       (builder) =>
-        builder //
+        builder
           .setName("register-ticket-collection")
           .setDescription("Register a guild for ticket collection monitoring")
           .addChannelOption((option) =>
@@ -27,101 +61,219 @@ export class RegisterTicketCollectionCommand extends Command {
               .setDescription("Ally code of a guild member (optional)")
               .setRequired(false),
           ),
-      { idHints: ["1370692224269942865"] }, // Add command ID hint after registration
+      { idHints: ["1370692224269942865"] },
     )
   }
 
   public override async chatInputRun(
     interaction: Command.ChatInputCommandInteraction,
   ) {
-    // Get the channel from the options
-    const channel = interaction.options.getChannel("channel")
-    if (!channel) {
-      return interaction.reply({
-        content: "Please provide a valid channel.",
-        ephemeral: true,
+    try {
+      // Validate initial requirements before deferring
+      const channel = this.validateChannel(interaction)
+      if (!channel.success || !channel.value) {
+        return await interaction.reply(channel.response)
+      }
+
+      const allyCodeResponse = await this.resolveAllyCode(interaction)
+      if (!allyCodeResponse.success || !allyCodeResponse.value) {
+        return await interaction.reply(allyCodeResponse.response)
+      }
+
+      // If initial validations pass, defer the reply for longer operations
+      await interaction.deferReply()
+
+      const guildData = await this.fetchGuildData(allyCodeResponse.value)
+      if (!guildData.success || !guildData.value) {
+        return await interaction.editReply(guildData.response)
+      }
+
+      const hasPermission = await this.checkGuildPermission(
+        guildData.value.playerData,
+        guildData.value.guild,
+      )
+      if (!hasPermission.success) {
+        return await interaction.editReply(hasPermission.response)
+      }
+
+      const registration = await this.registerGuildChannel(
+        guildData.value,
+        channel.value.id,
+      )
+      if (!registration.success) {
+        return await interaction.editReply(registration.response)
+      }
+
+      return await interaction.editReply({
+        content: this.formatSuccessMessage(
+          channel.value.id,
+          guildData.value.guildName,
+          guildData.value.nextRefreshTime,
+        ),
       })
-    }
-
-    // Get the optional ally code or look it up from the player database
-    let allyCode = interaction.options.getString("ally-code")?.replace(/-/g, "")
-
-    if (!allyCode) {
-      // Look up the ally code for the user from the database
-      const player = await container.playerClient.getPlayer(interaction.user.id)
-      if (!player || !player.allyCode) {
-        return interaction.reply({
+    } catch (error) {
+      // If we haven't deferred yet, use reply instead of editReply
+      if (!interaction.deferred) {
+        return await interaction.reply({
           content:
-            "You don't have a registered ally code. Please provide an ally code or register with `/register-player`.",
+            "An error occurred while processing your request. Please try again later.",
           ephemeral: true,
         })
       }
-      allyCode = player.allyCode
-    }
 
-    // Get the player data from comlink to find the guild ID
-    try {
-      await interaction.deferReply()
-
-      // First get the player data to find the guild ID
-      const playerData = await container.comlinkClient.getPlayer(allyCode)
-      if (!playerData?.guildId) {
-        return interaction.editReply({
-          content: `Could not find a guild for ally code ${allyCode}. Please make sure the ally code belongs to a guild member.`,
-        })
-      }
-
-      const guildId = playerData.guildId
-      const guildName = playerData.guildName || "Unknown Guild"
-
-      // Now get the guild data to get the nextChallengesRefresh time
-      const guildData = await container.comlinkClient.getGuild(guildId, true)
-      if (!guildData?.guild?.nextChallengesRefresh) {
-        return interaction.editReply({
-          content: `Could not retrieve guild refresh time for guild: ${guildName}. Please try again later.`,
-        })
-      }
-
-      // Find the player in the guild and check their role
-      const guildMember = guildData.guild.member?.find(
-        (m) => m.playerId === playerData.playerId,
-      )
-      if (!guildMember || guildMember.memberLevel < 3) {
-        return interaction.editReply({
-          content:
-            "Only guild leaders and officers can register the guild for ticket monitoring.",
-        })
-      }
-
-      const nextRefreshTime = guildData.guild.nextChallengesRefresh
-
-      // Register the channel for the guild
-      const success = await container.ticketChannelClient.registerChannel(
-        guildId,
-        channel.id,
-        nextRefreshTime,
-      )
-
-      if (!success) {
-        return interaction.editReply({
-          content:
-            "Failed to register ticket collection channel. Please try again later.",
-        })
-      }
-
-      // Format the refresh time for display
-      const refreshDate = new Date(parseInt(nextRefreshTime) * 1000)
-      const refreshTimeFormatted = refreshDate.toLocaleString()
-
-      return interaction.editReply({
-        content: `Successfully registered ${channelMention(channel.id)} for ticket collection monitoring for guild: ${guildName}\nNext ticket reset time: ${refreshTimeFormatted}`,
-      })
-    } catch (error) {
       console.error("Error in register-ticket-collection command:", error)
-      return interaction.editReply({
+      return await interaction.editReply({
         content:
           "An error occurred while processing your request. Please try again later.",
       })
     }
+  }
+
+  private validateChannel(
+    interaction: Command.ChatInputCommandInteraction,
+  ): CommandResponse<TextChannel> {
+    const channel = interaction.options.getChannel("channel")
+    if (!channel || !(channel instanceof TextChannel)) {
+      return {
+        success: false,
+        response: {
+          content: "Please provide a valid text channel.",
+          ephemeral: true,
+        },
+      }
+    }
+    return {
+      success: true,
+      response: { content: "" },
+      value: channel,
+    }
+  }
+
+  private async resolveAllyCode(
+    interaction: Command.ChatInputCommandInteraction,
+  ): Promise<CommandResponse<string>> {
+    const inputAllyCode = interaction.options.getString("ally-code")
+    const allyCode = inputAllyCode?.replace(/-/g, "") ?? null
+
+    if (!allyCode) {
+      const player = await container.playerClient.getPlayer(interaction.user.id)
+      if (!player?.allyCode) {
+        return {
+          success: false,
+          response: {
+            content:
+              "You don't have a registered ally code. Please provide an ally code or register with `/register-player`.",
+            ephemeral: true,
+          },
+        }
+      }
+      return {
+        success: true,
+        response: { content: "" },
+        value: player.allyCode,
+      }
+    }
+
+    return {
+      success: true,
+      response: { content: "" },
+      value: allyCode,
+    }
+  }
+
+  private async fetchGuildData(
+    allyCode: string,
+  ): Promise<CommandResponse<GuildRegistrationData>> {
+    const playerData = await container.comlinkClient.getPlayer(allyCode)
+    if (!playerData?.guildId) {
+      return {
+        success: false,
+        response: {
+          content: `Could not find a guild for ally code ${allyCode}. Please make sure the ally code belongs to a guild member.`,
+        },
+      }
+    }
+
+    const guildData = await container.comlinkClient.getGuild(
+      playerData.guildId,
+      true,
+    )
+    if (!guildData?.guild?.nextChallengesRefresh) {
+      return {
+        success: false,
+        response: {
+          content: `Could not retrieve guild refresh time for guild: ${
+            playerData.guildName || "Unknown Guild"
+          }. Please try again later.`,
+        },
+      }
+    }
+
+    return {
+      success: true,
+      response: { content: "" },
+      value: {
+        guildId: playerData.guildId,
+        guildName: playerData.guildName || "Unknown Guild",
+        nextRefreshTime: guildData.guild.nextChallengesRefresh,
+        playerData,
+        guild: guildData.guild,
+      },
+    }
+  }
+
+  private async checkGuildPermission(
+    playerData: ComlinkPlayerData,
+    guildData: ComlinkGuildData,
+  ): Promise<CommandResponse> {
+    const guildMember = guildData.member?.find(
+      (m: ComlinkGuildMember) => m.playerId === playerData.playerId,
+    )
+    if (!guildMember || guildMember.memberLevel < 3) {
+      return {
+        success: false,
+        response: {
+          content:
+            "Only guild leaders and officers can register the guild for ticket monitoring.",
+        },
+      }
+    }
+    return { success: true, response: { content: "" } }
+  }
+
+  private async registerGuildChannel(
+    guildData: GuildRegistrationData,
+    channelId: string,
+  ): Promise<CommandResponse> {
+    const success = await container.ticketChannelClient.registerChannel(
+      guildData.guildId,
+      channelId,
+      guildData.nextRefreshTime,
+    )
+
+    if (!success) {
+      return {
+        success: false,
+        response: {
+          content:
+            "Failed to register ticket collection channel. Please try again later.",
+        },
+      }
+    }
+
+    return { success: true, response: { content: "" } }
+  }
+
+  private formatSuccessMessage(
+    channelId: string,
+    guildName: string,
+    nextRefreshTime: string,
+  ): string {
+    const refreshDate = new Date(parseInt(nextRefreshTime) * 1000)
+    const refreshTimeFormatted = refreshDate.toLocaleString()
+
+    return `Successfully registered ${channelMention(
+      channelId,
+    )} for ticket collection monitoring for guild: ${guildName}\nNext ticket reset time: ${refreshTimeFormatted}`
   }
 }
