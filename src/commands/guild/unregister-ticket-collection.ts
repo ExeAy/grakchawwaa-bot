@@ -12,13 +12,14 @@ export class UnregisterTicketCollectionCommand extends Command {
   }
 
   public override registerApplicationCommands(registry: Command.Registry) {
-    registry.registerChatInputCommand((builder) =>
-      builder
-        .setName(this.name)
-        .setDescription(this.description)
-        .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
-    ),
-      { idHints: ["1371170913122517124"] }
+    registry.registerChatInputCommand(
+      (builder) =>
+        builder
+          .setName(this.name)
+          .setDescription(this.description)
+          .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
+      { idHints: ["1371170913122517124"] },
+    )
   }
 
   public override async chatInputRun(

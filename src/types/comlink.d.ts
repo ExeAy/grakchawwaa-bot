@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 declare module "@swgoh-utils/comlink" {
   interface ComlinkStubOptions {
     url?: string
