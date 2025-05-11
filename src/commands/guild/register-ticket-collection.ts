@@ -82,6 +82,17 @@ export class RegisterTicketCollectionCommand extends Command {
         })
       }
 
+      // Find the player in the guild and check their role
+      const guildMember = guildData.guild.member?.find(
+        (m) => m.playerId === playerData.playerId,
+      )
+      if (!guildMember || guildMember.memberLevel < 3) {
+        return interaction.editReply({
+          content:
+            "Only guild leaders and officers can register the guild for ticket monitoring.",
+        })
+      }
+
       const nextRefreshTime = guildData.guild.nextChallengesRefresh
 
       // Register the channel for the guild
@@ -103,7 +114,7 @@ export class RegisterTicketCollectionCommand extends Command {
       const refreshTimeFormatted = refreshDate.toLocaleString()
 
       return interaction.editReply({
-        content: `Successfully registered ${channelMention(channel.id)} for ticket collection monitoring for guild: ${guildName}\Next ticket reset time: ${refreshTimeFormatted}`,
+        content: `Successfully registered ${channelMention(channel.id)} for ticket collection monitoring for guild: ${guildName}\nNext ticket reset time: ${refreshTimeFormatted}`,
       })
     } catch (error) {
       console.error("Error in register-ticket-collection command:", error)
