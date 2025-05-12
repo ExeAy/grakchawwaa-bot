@@ -15,6 +15,7 @@ export class TicketMonitorService {
   private client: DiscordBotClient
   private summaryService: ViolationSummaryService
   private checkInterval: NodeJS.Timeout | null = null
+  private processedRefreshTimes: Set<string> = new Set() // Track processed refresh times
   private static TICKET_THRESHOLD = 600 // Ticket threshold for violation
   private static CHECK_FREQUENCY = 60 * 1000 // Check every minute
   private static CHECK_BEFORE_RESET = 2 * 60 * 1000 // 2 minutes before reset
@@ -39,6 +40,8 @@ export class TicketMonitorService {
       clearInterval(this.checkInterval)
       this.checkInterval = null
     }
+    // Clear processed refresh times when stopping
+    this.processedRefreshTimes.clear()
   }
 
   private async checkGuildResetTimes(): Promise<void> {
@@ -50,13 +53,19 @@ export class TicketMonitorService {
       for (const guild of guilds) {
         // Parse the next refresh time
         const refreshTime = parseInt(guild.next_refresh_time) * 1000 // Convert to milliseconds
+        const refreshTimeKey = `${guild.guild_id}:${guild.next_refresh_time}`
 
         // Check if we're within 2 minutes of the reset for ticket collection
         const timeUntilReset = refreshTime - now
         if (
           timeUntilReset > 0 &&
-          timeUntilReset <= TicketMonitorService.CHECK_BEFORE_RESET
+          timeUntilReset <= TicketMonitorService.CHECK_BEFORE_RESET &&
+          !this.processedRefreshTimes.has(refreshTimeKey)
         ) {
+          // Mark this refresh time as processed
+          this.processedRefreshTimes.add(refreshTimeKey)
+          console.log(`Processing tickets for refresh time: ${refreshTimeKey}`)
+
           // It's time to check ticket counts
           await this.collectTicketData(guild.guild_id, guild.channel_id)
         }
@@ -64,10 +73,13 @@ export class TicketMonitorService {
         // Check if we're 5 minutes past the reset to update next refresh time
         const timeSinceReset = now - refreshTime
         if (timeSinceReset >= TicketMonitorService.REFRESH_UPDATE_DELAY) {
+          // For post-refresh operations, we want to run them once when the time is right
+          // After updating the refresh time, the old key will no longer match
           await this.handlePostRefreshOperations(
             guild.guild_id,
             guild.channel_id,
           )
+          this.processedRefreshTimes.delete(refreshTimeKey)
         }
       }
     } catch (error) {
