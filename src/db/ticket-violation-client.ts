@@ -3,30 +3,30 @@ import { Pool, QueryResult, QueryResultRow } from "pg"
 export interface TicketViolationRow extends QueryResultRow {
   guild_id: string
   date: Date
-  players: string[]
+  ticket_counts: Record<string, number>
 }
 
 const QUERIES = {
   RECORD_VIOLATIONS: `
-    INSERT INTO ticketViolations (guild_id, date, players)
+    INSERT INTO ticketViolations (guild_id, date, ticket_counts)
     VALUES ($1, $2, $3);
   `,
   GET_RECENT_VIOLATIONS: `
-    SELECT guild_id, date, players
+    SELECT guild_id, date, ticket_counts
     FROM ticketViolations
     WHERE guild_id = $1
     ORDER BY date DESC
     LIMIT 7;
   `,
   GET_WEEKLY_VIOLATIONS: `
-    SELECT guild_id, date, players
+    SELECT guild_id, date, ticket_counts
     FROM ticketViolations
     WHERE guild_id = $1
       AND date >= NOW() - INTERVAL '7 days'
     ORDER BY date DESC;
   `,
   GET_MONTHLY_VIOLATIONS: `
-    SELECT guild_id, date, players
+    SELECT guild_id, date, ticket_counts
     FROM ticketViolations
     WHERE guild_id = $1
       AND date >= NOW() - INTERVAL '90 days'
@@ -79,16 +79,20 @@ export class TicketViolationPGClient {
 
   public async recordViolations(
     guildId: string,
-    players: string[],
+    ticketCounts: Record<string, number>,
   ): Promise<boolean> {
-    if (!guildId || !players.length) {
-      console.error("Invalid guild or empty players array")
+    if (!guildId || Object.keys(ticketCounts).length === 0) {
+      console.error("Invalid guild or empty ticket counts")
       return false
     }
 
     try {
       const now = new Date()
-      await this.query(QUERIES.RECORD_VIOLATIONS, [guildId, now, players])
+      await this.query(QUERIES.RECORD_VIOLATIONS, [
+        guildId,
+        now,
+        JSON.stringify(ticketCounts),
+      ])
       return true
     } catch (error) {
       console.error("Error recording ticket violations:", error)

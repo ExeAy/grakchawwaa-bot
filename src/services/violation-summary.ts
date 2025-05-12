@@ -11,8 +11,14 @@ interface ViolationSummary {
   totalMissingTickets: number
 }
 
+interface PlayerCounter {
+  violations: number
+  ticketSum: number
+}
+
 export class ViolationSummaryService {
   private client: DiscordBotClient
+  private static TICKET_THRESHOLD = 600 // Maximum tickets per day
 
   constructor(client: DiscordBotClient) {
     this.client = client
@@ -68,7 +74,7 @@ export class ViolationSummaryService {
         guildName,
         violations,
         "Monthly",
-        90, // 3 months
+        30,
       )
     } catch (error) {
       console.error(
@@ -163,30 +169,102 @@ export class ViolationSummaryService {
     daysInPeriod: number,
     playerNames: Map<string, string>,
   ): Map<string, ViolationSummary> {
-    const playerStats = new Map<string, ViolationSummary>()
+    // Collect raw data about player violations
+    const playerCounters = this.collectViolationCounts(violations)
+
+    // Transform raw data into summary statistics
+    return this.transformCountersToStats(
+      playerCounters,
+      daysInPeriod,
+      playerNames,
+    )
+  }
+
+  /**
+   * Collect counts of violations, tickets, and days for each player
+   */
+  private collectViolationCounts(
+    violations: TicketViolationRow[],
+  ): Map<string, PlayerCounter> {
+    const playerCounters = new Map<string, PlayerCounter>()
 
     // Process each violation record
     for (const violation of violations) {
-      for (const playerId of violation.players) {
-        const stats = playerStats.get(playerId) || {
-          playerName: playerNames.get(playerId) || playerId, // Fallback to ID if name not found
-          violationCount: 0,
-          averageTickets: 0,
-          totalMissingTickets: 0,
+      // Ensure ticket_counts exists, use empty object as fallback
+      const ticketCounts = violation.ticket_counts || {}
+
+      // Process each player in the ticket_counts object
+      for (const playerId of Object.keys(ticketCounts)) {
+        // Get or initialize player counter
+        const counter = playerCounters.get(playerId) || {
+          violations: 0,
+          ticketSum: 0,
         }
 
-        stats.violationCount++
-        stats.totalMissingTickets += 600 // Each violation means 600 tickets were not earned
-        playerStats.set(playerId, stats)
+        // Update counter
+        counter.violations += 1
+        counter.ticketSum += ticketCounts[playerId] || 0
+
+        // Store updated counter
+        playerCounters.set(playerId, counter)
       }
     }
 
-    // Calculate averages
-    for (const stats of playerStats.values()) {
-      stats.averageTickets =
-        (daysInPeriod * 600 - stats.totalMissingTickets) / daysInPeriod
+    return playerCounters
+  }
+
+  /**
+   * Transform raw player counters into calculated violation statistics
+   */
+  private transformCountersToStats(
+    playerCounters: Map<string, PlayerCounter>,
+    daysInPeriod: number,
+    playerNames: Map<string, string>,
+  ): Map<string, ViolationSummary> {
+    const playerStats = new Map<string, ViolationSummary>()
+
+    for (const [playerId, counter] of playerCounters.entries()) {
+      // Calculate missing tickets based on actual tickets collected
+      const missingTickets = this.calculateMissingTickets(counter)
+
+      // Calculate average tickets per day across the period
+      const averageTickets = this.calculateAverageTickets(counter, daysInPeriod)
+
+      // Create the player's violation summary
+      playerStats.set(playerId, {
+        playerName: playerNames.get(playerId) || playerId,
+        violationCount: counter.violations,
+        averageTickets,
+        totalMissingTickets: missingTickets,
+      })
     }
 
     return playerStats
+  }
+
+  /**
+   * Calculate how many tickets a player missed during their violation days
+   */
+  private calculateMissingTickets(counter: PlayerCounter): number {
+    return (
+      counter.violations * ViolationSummaryService.TICKET_THRESHOLD -
+      counter.ticketSum
+    )
+  }
+
+  /**
+   * Calculate average daily ticket contribution over the entire period
+   * Assumes player collected full tickets on days without violations
+   */
+  private calculateAverageTickets(
+    counter: PlayerCounter,
+    daysInPeriod: number,
+  ): number {
+    const daysWithoutViolations = daysInPeriod - counter.violations
+    const estimatedTotalTickets =
+      counter.ticketSum +
+      daysWithoutViolations * ViolationSummaryService.TICKET_THRESHOLD
+
+    return estimatedTotalTickets / daysInPeriod
   }
 }

@@ -79,6 +79,7 @@ export class TicketMonitorService {
             guild.guild_id,
             guild.channel_id,
           )
+
           this.processedRefreshTimes.delete(refreshTimeKey)
         }
       }
@@ -146,11 +147,17 @@ export class TicketMonitorService {
     violators: TicketViolator[],
   ): Promise<void> {
     if (violators.length > 0) {
-      // Store violation data
-      const violatorIds = violators.map((v) => v.id)
+      // Create mapping of player ID to ticket count
+      const ticketCounts: Record<string, number> = {}
+
+      violators.forEach((v) => {
+        ticketCounts[v.id] = v.tickets
+      })
+
+      // Store violation data with ticket counts only
       await container.ticketViolationClient.recordViolations(
         guildId,
-        violatorIds,
+        ticketCounts,
       )
 
       // Send notification to the channel

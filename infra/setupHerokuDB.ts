@@ -9,12 +9,12 @@ const initializeHerokuDatabase = async (): Promise<void> => {
       alt_ally_codes char(9)[]
     );
 
-    DROP TABLE IF EXISTS channels;
+    DROP TABLE IF EXISTS ticketCollectionChannels;
 
     CREATE TABLE IF NOT EXISTS ticketViolations (
       guild_id text NOT NULL,
       date timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-      players text[] NOT NULL,
+      ticket_counts jsonb NOT NULL,
       PRIMARY KEY (guild_id, date)
     );
 
