@@ -182,13 +182,19 @@ export class GetGuildMembersCommand extends Command {
         joinTime = null
       }
 
+      const formattedJoinTime = joinTime
+        ? joinTime.toISOString().slice(0, 10) +
+          " " +
+          joinTime.toTimeString().slice(0, 5)
+        : "N/A"
+
       embed.addFields({
         name: `${position}. ${member.playerName} (Lvl ${member.playerLevel})`,
         value:
           `**ID:** ${member.playerId}\n` +
           `**GP:** ${formattedGP}\n` +
           `**Last Active:** ${lastActivityAgo}\n` +
-          `**Joined Guild:** ${joinTime ? joinTime.toLocaleString() : "N/A"}`,
+          `**Joined Guild:** ${formattedJoinTime}`,
       })
     })
 
