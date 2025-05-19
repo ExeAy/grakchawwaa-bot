@@ -9,14 +9,13 @@ const initializeDatabase = async (): Promise<void> => {
       ally_code char(9) NOT NULL,
       alt_ally_codes char(9)[]
     );
-    
-    DROP TABLE IF EXISTS ticketViolations;
+
     DROP TABLE IF EXISTS ticketCollectionChannels;
 
     CREATE TABLE IF NOT EXISTS ticketViolations (
       guild_id text NOT NULL,
       date timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-      players text[] NOT NULL,
+      ticket_counts jsonb NOT NULL,
       PRIMARY KEY (guild_id, date)
     );
 
