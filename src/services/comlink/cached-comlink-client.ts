@@ -1,6 +1,6 @@
 import { container } from "@sapphire/pieces"
 import { ComlinkGuildData, ComlinkPlayerData } from "@swgoh-utils/comlink"
-import { CacheService } from "./cache-service"
+import { CacheService } from "../cache-service"
 
 export class CachedComlinkClient {
   private static instance: CachedComlinkClient
