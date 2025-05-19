@@ -1,6 +1,6 @@
-import { setupComlinkClient } from "./comlink-service"
 import { setupPostgresClients } from "./db/postgres-client"
 import { DiscordBotClient } from "./discord-bot-client"
+import { setupComlinkClient } from "./services/comlink-service"
 import { setupServices } from "./services/setup-services"
 import { TicketMonitorService } from "./services/ticket-monitor"
 
