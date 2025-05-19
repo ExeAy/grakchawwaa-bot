@@ -37,7 +37,7 @@
 
     /* If your code doesn't run in the DOM: */
     "lib": ["es2022"],
-    "types": ["./src/types/comlink.d.ts"]
+    "types": ["./src/types/comlink.d.ts", "jest", "node"]
   },
   "include": ["src/**/*"],
   "exclude": ["node_modules", "dist", ".wrangler"]
