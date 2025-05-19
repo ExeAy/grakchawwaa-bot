@@ -227,6 +227,9 @@ export class ViolationSummaryService {
       // Skip players with no violations
       if (counter.violations === 0) continue
 
+      // Skip players without a player name
+      if (!playerNames.has(playerId)) continue
+
       // Calculate missing tickets based on actual tickets collected
       const missingTickets = this.calculateMissingTickets(counter)
 
@@ -235,7 +238,7 @@ export class ViolationSummaryService {
 
       // Create the player's violation summary
       playerStats.set(playerId, {
-        playerName: playerNames.get(playerId) || playerId,
+        playerName: playerNames.get(playerId)!,
         violationCount: counter.violations,
         averageTickets,
         totalMissingTickets: missingTickets,
