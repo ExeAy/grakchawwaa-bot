@@ -26,7 +26,7 @@ export class GetGuildMembersCommand extends Command {
               .setDescription("Filter members by name (not case-sensitive)")
               .setRequired(false),
           ),
-      { idHints: ["1374077113417732208"] },
+      { idHints: ["1374077113417732208", "1374084340669218846"] },
     )
   }
 
