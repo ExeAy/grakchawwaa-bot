@@ -128,9 +128,9 @@ export class ViolationSummaryService {
         playerNames,
       )
 
-      // Sort players by violation count (descending)
+      // Sort players by average tickets (ascending) to show worst offenders first
       const sortedStats = [...playerStats.values()].sort(
-        (a, b) => b.averageTickets - a.averageTickets,
+        (a, b) => a.averageTickets - b.averageTickets,
       )
 
       // Create the summary message
@@ -224,6 +224,9 @@ export class ViolationSummaryService {
     const playerStats = new Map<string, ViolationSummary>()
 
     for (const [playerId, counter] of playerCounters.entries()) {
+      // Skip players with no violations
+      if (counter.violations === 0) continue
+
       // Calculate missing tickets based on actual tickets collected
       const missingTickets = this.calculateMissingTickets(counter)
 
@@ -254,17 +257,15 @@ export class ViolationSummaryService {
 
   /**
    * Calculate average daily ticket contribution over the entire period
-   * Assumes player collected full tickets on days without violations
+   * Only counts days with violations and caps at TICKET_THRESHOLD
    */
   private calculateAverageTickets(
     counter: PlayerCounter,
     daysInPeriod: number,
   ): number {
-    const daysWithoutViolations = daysInPeriod - counter.violations
-    const estimatedTotalTickets =
-      counter.ticketSum +
-      daysWithoutViolations * ViolationSummaryService.TICKET_THRESHOLD
-
-    return estimatedTotalTickets / daysInPeriod
+    const maxTickets = daysInPeriod * ViolationSummaryService.TICKET_THRESHOLD
+    const totalMissingTickets = this.calculateMissingTickets(counter)
+    const totalTickets = maxTickets - totalMissingTickets
+    return totalTickets / daysInPeriod
   }
 }
