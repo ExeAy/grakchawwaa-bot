@@ -77,6 +77,24 @@ export class TicketViolationPGClient {
     }
   }
 
+  /**
+   * Process database rows to ensure ticket_counts values are numbers
+   */
+  private processRows(rows: TicketViolationRow[]): TicketViolationRow[] {
+    return rows.map((row) => {
+      // Ensure ticket_counts exists and convert string values to numbers
+      if (row.ticket_counts) {
+        const ticketCounts: Record<string, number> = {}
+        for (const [playerId, count] of Object.entries(row.ticket_counts)) {
+          ticketCounts[playerId] =
+            typeof count === "string" ? parseInt(count, 10) : (count as number)
+        }
+        return { ...row, ticket_counts: ticketCounts }
+      }
+      return row
+    })
+  }
+
   public async recordViolations(
     guildId: string,
     ticketCounts: Record<string, number>,
@@ -113,7 +131,7 @@ export class TicketViolationPGClient {
         QUERIES.GET_RECENT_VIOLATIONS,
         [guildId],
       )
-      return result.rows
+      return this.processRows(result.rows)
     } catch (error) {
       console.error("Error getting recent ticket violations:", error)
       return []
@@ -133,7 +151,7 @@ export class TicketViolationPGClient {
         QUERIES.GET_WEEKLY_VIOLATIONS,
         [guildId],
       )
-      return result.rows
+      return this.processRows(result.rows)
     } catch (error) {
       console.error("Error getting weekly ticket violations:", error)
       return []
@@ -153,7 +171,7 @@ export class TicketViolationPGClient {
         QUERIES.GET_MONTHLY_VIOLATIONS,
         [guildId],
       )
-      return result.rows
+      return this.processRows(result.rows)
     } catch (error) {
       console.error("Error getting monthly ticket violations:", error)
       return []
