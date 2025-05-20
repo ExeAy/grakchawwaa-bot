@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import { EmbedBuilder } from "discord.js"
 import { TicketViolationRow } from "../../db/ticket-violation-client"
 import { ViolationSummaryService } from "../violation-summary"
 
@@ -27,25 +28,37 @@ jest.mock("@sapphire/pieces", () => ({
   },
 }))
 
-// Mock discord-utils
-jest.mock("../../utils/discord-utils", () => ({
-  sendLongMessage: jest.fn().mockResolvedValue(undefined),
+// Mock discord.js
+jest.mock("discord.js", () => ({
+  EmbedBuilder: jest.fn().mockImplementation(() => ({
+    setColor: jest.fn().mockReturnThis(),
+    setTitle: jest.fn().mockReturnThis(),
+    setDescription: jest.fn().mockReturnThis(),
+    setTimestamp: jest.fn().mockReturnThis(),
+    addFields: jest.fn().mockReturnThis(),
+  })),
+  TextChannel: jest.fn(),
 }))
 
 // Import the mocks after they are defined
 const mockContainer = jest.requireMock("@sapphire/pieces").container
-const { sendLongMessage } = jest.requireMock("../../utils/discord-utils")
 const { DiscordBotClient } = jest.requireMock("../../discord-bot-client")
 
 describe("ViolationSummaryService", () => {
   let service: ViolationSummaryService
   let mockClient: any
+  let mockChannel: any
 
   beforeEach(() => {
     jest.clearAllMocks()
 
     // Create a mocked client
+    mockChannel = {
+      isTextBased: jest.fn().mockReturnValue(true),
+      send: jest.fn().mockResolvedValue(undefined),
+    }
     mockClient = new DiscordBotClient()
+    mockClient.channels.fetch.mockResolvedValue(mockChannel)
     service = new ViolationSummaryService(mockClient)
   })
 
@@ -239,6 +252,11 @@ describe("ViolationSummaryService", () => {
           ]),
         )
 
+      // Spy on createPlayerStatsEmbed
+      const createPlayerStatsEmbedSpy = jest
+        .spyOn(service as any, "createPlayerStatsEmbed")
+        .mockReturnValue(new EmbedBuilder())
+
       // Call the method
       await sendSummaryReport(channelId, guildName, violations, "Weekly", 7)
 
@@ -258,19 +276,19 @@ describe("ViolationSummaryService", () => {
         expect.any(Map),
       )
 
-      // Verify sendLongMessage was called with formatted message
-      expect(sendLongMessage).toHaveBeenCalledWith(
-        expect.anything(),
-        expect.stringContaining(
-          "Weekly Ticket Violation Summary for Test Guild",
-        ),
+      // Verify EmbedBuilder was used
+      expect(EmbedBuilder).toHaveBeenCalled()
+
+      // Verify channel.send was called with embeds
+      expect(mockChannel.send).toHaveBeenCalledWith(
         expect.objectContaining({
-          preserveFormat: true,
+          embeds: expect.any(Array),
         }),
       )
 
       // Clean up
       calculatePlayerStatsSpy.mockRestore()
+      createPlayerStatsEmbedSpy.mockRestore()
     })
 
     it("should handle error when channel is not found", async () => {
@@ -303,6 +321,49 @@ describe("ViolationSummaryService", () => {
 
       // Clean up
       consoleSpy.mockRestore()
+    })
+  })
+
+  describe("createPlayerStatsEmbed", () => {
+    it("should create a properly formatted embed", () => {
+      // Access the private method
+      const createPlayerStatsEmbed = (
+        service as any
+      ).createPlayerStatsEmbed.bind(service)
+
+      // Create test data
+      const playerStats = [
+        {
+          playerName: "Test Player 1",
+          violationCount: 2,
+          averageTickets: 550,
+          totalMissingTickets: 100,
+        },
+        {
+          playerName: "Test Player 2",
+          violationCount: 1,
+          averageTickets: 580,
+          totalMissingTickets: 20,
+        },
+      ]
+
+      // Call the method
+      const embed = createPlayerStatsEmbed(
+        playerStats,
+        "Test Guild",
+        "Weekly",
+        1,
+        1,
+      )
+
+      // Verify the embed was configured correctly
+      expect(embed.setColor).toHaveBeenCalledWith(0x0099ff)
+      expect(embed.setTitle).toHaveBeenCalledWith(
+        "Weekly Player Ticket Statistics - Test Guild",
+      )
+      expect(embed.setDescription).toHaveBeenCalledWith("Page 1 of 1")
+      expect(embed.setTimestamp).toHaveBeenCalled()
+      expect(embed.addFields).toHaveBeenCalledTimes(2)
     })
   })
 

@@ -37,9 +37,23 @@ jest.mock("@sapphire/pieces", () => ({
   },
 }))
 
-// Mock discord-utils
-jest.mock("../../utils/discord-utils", () => ({
-  sendLongMessage: jest.fn().mockResolvedValue(undefined),
+// Mock embedBuilder constructor and its methods
+const mockSetColor = jest.fn().mockReturnThis()
+const mockSetTitle = jest.fn().mockReturnThis()
+const mockSetDescription = jest.fn().mockReturnThis()
+const mockSetTimestamp = jest.fn().mockReturnThis()
+const mockAddFields = jest.fn().mockReturnThis()
+
+// Mock discord.js
+jest.mock("discord.js", () => ({
+  EmbedBuilder: jest.fn().mockImplementation(() => ({
+    setColor: mockSetColor,
+    setTitle: mockSetTitle,
+    setDescription: mockSetDescription,
+    setTimestamp: mockSetTimestamp,
+    addFields: mockAddFields,
+  })),
+  TextChannel: jest.fn(),
 }))
 
 // Mock ViolationSummaryService
@@ -52,12 +66,13 @@ jest.mock("../violation-summary", () => ({
 
 // Import the mocks after they are defined
 const mockContainer = jest.requireMock("@sapphire/pieces").container
-const { sendLongMessage } = jest.requireMock("../../utils/discord-utils")
 const { DiscordBotClient } = jest.requireMock("../../discord-bot-client")
+const MockEmbedBuilder = jest.requireMock("discord.js").EmbedBuilder
 
 describe("TicketMonitorService", () => {
   let service: TicketMonitorService
   let mockClient: any
+  let mockChannel: any
   let realDateNow: () => number
 
   beforeEach(() => {
@@ -66,8 +81,15 @@ describe("TicketMonitorService", () => {
     // Store the real Date.now function
     realDateNow = Date.now
 
+    // Create a mocked channel
+    mockChannel = {
+      isTextBased: jest.fn().mockReturnValue(true),
+      send: jest.fn().mockResolvedValue(undefined),
+    }
+
     // Create a mocked client
     mockClient = new DiscordBotClient()
+    mockClient.channels.fetch.mockResolvedValue(mockChannel)
     service = new TicketMonitorService(mockClient)
   })
 
@@ -256,22 +278,26 @@ describe("TicketMonitorService", () => {
       // Verify channel was fetched
       expect(mockClient.channels.fetch).toHaveBeenCalledWith(channelId)
 
-      // Verify sendLongMessage was called with formatted message
-      expect(sendLongMessage).toHaveBeenCalledWith(
-        expect.anything(),
-        expect.stringContaining("Ticket Violation Report for Test Guild"),
-        expect.objectContaining({
-          preserveFormat: true,
-        }),
-      )
+      // Verify EmbedBuilder was used
+      expect(MockEmbedBuilder).toHaveBeenCalled()
 
-      // Verify message contains violator information
-      const message = (sendLongMessage as jest.Mock).mock.calls[0][1]
-      expect(message).toContain("Player 1")
-      expect(message).toContain("500/600")
-      expect(message).toContain("Player 2")
-      expect(message).toContain("300/600")
-      expect(message).toContain("Total missing tickets: 400") // (600-500) + (600-300)
+      // Verify embed configuration
+      expect(mockSetColor).toHaveBeenCalledWith(0xed4245) // Red color
+      expect(mockSetTitle).toHaveBeenCalledWith(
+        "Ticket Violation Report for Test Guild",
+      )
+      expect(mockSetDescription).toHaveBeenCalledWith(
+        "The following 2 players did not reach 600 daily raid tickets",
+      )
+      expect(mockSetTimestamp).toHaveBeenCalled()
+
+      // Verify addFields was called for each violator and total
+      expect(mockAddFields).toHaveBeenCalledTimes(3)
+
+      // Verify channel.send was called with the embed
+      expect(mockChannel.send).toHaveBeenCalledWith({
+        embeds: [expect.anything()],
+      })
     })
 
     it("should handle error when channel is not found", async () => {
