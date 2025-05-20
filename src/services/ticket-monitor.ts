@@ -61,8 +61,9 @@ export class TicketMonitorService {
 
       for (const guild of guilds) {
         // Parse the next refresh time
-        const refreshTime = parseInt(guild.next_refresh_time) * 1000 // Convert to milliseconds
-        const refreshTimeKey = `${guild.guild_id}:${guild.next_refresh_time}`
+        const refreshTime =
+          parseInt(guild.next_ticket_collection_refresh_time) * 1000 // Convert to milliseconds
+        const refreshTimeKey = `${guild.guild_id}:${guild.next_ticket_collection_refresh_time}`
 
         // In dev mode with forceCheck, process regardless of timing
         if (this.isDevMode) {
@@ -71,12 +72,15 @@ export class TicketMonitorService {
           )
 
           // Process ticket data collection
-          await this.collectTicketData(guild.guild_id, guild.channel_id)
+          await this.collectTicketData(
+            guild.guild_id,
+            guild.ticket_collection_channel_id,
+          )
 
           // Also force run post-refresh operations and summaries
           await this.handlePostRefreshOperations(
             guild.guild_id,
-            guild.channel_id,
+            guild.ticket_collection_channel_id,
             true,
           )
 
@@ -96,7 +100,10 @@ export class TicketMonitorService {
           console.log(`Processing tickets for refresh time: ${refreshTimeKey}`)
 
           // It's time to check ticket counts
-          await this.collectTicketData(guild.guild_id, guild.channel_id)
+          await this.collectTicketData(
+            guild.guild_id,
+            guild.ticket_collection_channel_id,
+          )
         }
 
         // Check if we're 5 minutes past the reset to update next refresh time
@@ -106,7 +113,7 @@ export class TicketMonitorService {
           // After updating the refresh time, the old key will no longer match
           await this.handlePostRefreshOperations(
             guild.guild_id,
-            guild.channel_id,
+            guild.ticket_collection_channel_id,
           )
 
           this.processedRefreshTimes.delete(refreshTimeKey)

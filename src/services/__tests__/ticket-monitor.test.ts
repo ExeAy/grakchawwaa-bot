@@ -347,8 +347,9 @@ describe("TicketMonitorService", () => {
       mockContainer.ticketChannelClient.getAllGuilds.mockResolvedValue([
         {
           guild_id: "guild123",
-          channel_id: "channel456",
-          next_refresh_time: resetTime.toString(),
+          ticket_collection_channel_id: "channel456",
+          next_ticket_collection_refresh_time: resetTime.toString(),
+          anniversary_channel_id: "channel789",
         },
       ])
 
@@ -385,8 +386,9 @@ describe("TicketMonitorService", () => {
       mockContainer.ticketChannelClient.getAllGuilds.mockResolvedValue([
         {
           guild_id: "guild123",
-          channel_id: "channel456",
-          next_refresh_time: resetTime.toString(),
+          ticket_collection_channel_id: "channel456",
+          next_ticket_collection_refresh_time: resetTime.toString(),
+          anniversary_channel_id: "channel789",
         },
       ])
 
