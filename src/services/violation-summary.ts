@@ -1,8 +1,7 @@
 import { container } from "@sapphire/pieces"
-import { TextChannel } from "discord.js"
+import { EmbedBuilder, TextChannel } from "discord.js"
 import { TicketViolationRow } from "../db/ticket-violation-client"
 import { DiscordBotClient } from "../discord-bot-client"
-import { sendLongMessage } from "../utils/discord-utils"
 
 interface ViolationSummary {
   playerName: string
@@ -133,35 +132,82 @@ export class ViolationSummaryService {
         (a, b) => a.averageTickets - b.averageTickets,
       )
 
-      // Create the summary message
-      let message = `# ${reportType} Ticket Violation Summary for ${guildName}\n\n`
-      message += `Period: Last ${daysInPeriod} days\n`
-      message += `Total Violations Recorded: ${violations.length}\n\n`
-      message += `## Player Statistics\n\n`
+      // Create main embed with summary information
+      const mainEmbed = new EmbedBuilder()
+        .setColor(0x0099ff)
+        .setTitle(`${reportType} Ticket Violation Summary for ${guildName}`)
+        .setDescription(
+          `Period: Last ${daysInPeriod} days\n` +
+            `Total Violations Recorded: ${violations.length}`,
+        )
+        .setTimestamp()
 
-      for (const stats of sortedStats) {
-        message += `**${stats.playerName}**\n`
-        message += `• Violations: ${stats.violationCount}\n`
-        message += `• Average Daily Tickets: ${stats.averageTickets.toFixed(1)}\n`
-        message += `• Total Missing Tickets: ${stats.totalMissingTickets}\n\n`
-      }
-
+      // Add total guild missing tickets to the main embed
       const totalMissingTickets = sortedStats.reduce(
         (sum, stats) => sum + stats.totalMissingTickets,
         0,
       )
-      message += `\nTotal Guild Missing Tickets: ${totalMissingTickets}`
-
-      await sendLongMessage(channel, message, {
-        preserveFormat: true,
-        splitOn: ["\n\n", "\n"],
+      mainEmbed.addFields({
+        name: "Guild Summary",
+        value: `Total Guild Missing Tickets: ${totalMissingTickets}`,
       })
+
+      // Send the main embed first
+      await channel.send({ embeds: [mainEmbed] })
+
+      // Split player stats into multiple embeds (10 players per embed)
+      const playersPerEmbed = 10
+      const pageCount = Math.ceil(sortedStats.length / playersPerEmbed)
+
+      for (let page = 1; page <= pageCount; page++) {
+        const startIdx = (page - 1) * playersPerEmbed
+        const endIdx = Math.min(startIdx + playersPerEmbed, sortedStats.length)
+        const pageStats = sortedStats.slice(startIdx, endIdx)
+
+        const playerEmbed = this.createPlayerStatsEmbed(
+          pageStats,
+          guildName,
+          reportType,
+          page,
+          pageCount,
+        )
+
+        await channel.send({ embeds: [playerEmbed] })
+      }
     } catch (error) {
       console.error(
         `Error sending ${reportType.toLowerCase()} summary to channel ${channelId}:`,
         error,
       )
     }
+  }
+
+  private createPlayerStatsEmbed(
+    playerStats: ViolationSummary[],
+    guildName: string,
+    reportType: "Weekly" | "Monthly",
+    page: number,
+    totalPages: number,
+  ): EmbedBuilder {
+    const embed = new EmbedBuilder()
+      .setColor(0x0099ff)
+      .setTitle(`${reportType} Player Ticket Statistics - ${guildName}`)
+      .setDescription(`Page ${page} of ${totalPages}`)
+      .setTimestamp()
+
+    playerStats.forEach((stats, index) => {
+      const position = (page - 1) * 10 + index + 1
+
+      embed.addFields({
+        name: `${position}. ${stats.playerName}`,
+        value:
+          `**Violations:** ${stats.violationCount}\n` +
+          `**Avg. Daily Tickets:** ${stats.averageTickets.toFixed(1)}\n` +
+          `**Total Missing Tickets:** ${stats.totalMissingTickets}`,
+      })
+    })
+
+    return embed
   }
 
   private calculatePlayerStats(

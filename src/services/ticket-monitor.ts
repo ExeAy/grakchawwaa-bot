@@ -1,8 +1,7 @@
 import { container } from "@sapphire/pieces"
 import { ComlinkGuildData, ComlinkGuildMember } from "@swgoh-utils/comlink"
-import { TextChannel } from "discord.js"
+import { EmbedBuilder, TextChannel } from "discord.js"
 import { DiscordBotClient } from "../discord-bot-client"
-import { sendLongMessage } from "../utils/discord-utils"
 import { ViolationSummaryService } from "./violation-summary"
 
 interface TicketViolator {
@@ -20,19 +19,29 @@ export class TicketMonitorService {
   private static CHECK_FREQUENCY = 60 * 1000 // Check every minute
   private static CHECK_BEFORE_RESET = 2 * 60 * 1000 // 2 minutes before reset
   private static REFRESH_UPDATE_DELAY = 5 * 60 * 1000 // 5 minutes wait for refresh update
+  private isDevMode: boolean
 
   constructor(client: DiscordBotClient) {
     this.client = client
     this.summaryService = new ViolationSummaryService(client)
+    this.isDevMode = process.env.NODE_ENV === "development"
   }
 
   public start(): void {
-    console.log("Starting ticket monitor service")
+    console.log(
+      `Starting ticket monitor service in ${this.isDevMode ? "development" : "production"} mode`,
+    )
 
-    // Check every minute
-    this.checkInterval = setInterval(() => {
+    if (this.isDevMode) {
+      // In dev mode, run check once directly
+      console.log("Development mode: Running ticket check once")
       this.checkGuildResetTimes()
-    }, TicketMonitorService.CHECK_FREQUENCY)
+    } else {
+      // In production mode, use interval checks
+      this.checkInterval = setInterval(() => {
+        this.checkGuildResetTimes()
+      }, TicketMonitorService.CHECK_FREQUENCY)
+    }
   }
 
   public stop(): void {
@@ -55,6 +64,26 @@ export class TicketMonitorService {
         const refreshTime = parseInt(guild.next_refresh_time) * 1000 // Convert to milliseconds
         const refreshTimeKey = `${guild.guild_id}:${guild.next_refresh_time}`
 
+        // In dev mode with forceCheck, process regardless of timing
+        if (this.isDevMode) {
+          console.log(
+            `Development mode: Force checking tickets for guild ${guild.guild_id}`,
+          )
+
+          // Process ticket data collection
+          await this.collectTicketData(guild.guild_id, guild.channel_id)
+
+          // Also force run post-refresh operations and summaries
+          await this.handlePostRefreshOperations(
+            guild.guild_id,
+            guild.channel_id,
+            true,
+          )
+
+          continue
+        }
+
+        // Regular production logic below
         // Check if we're within 2 minutes of the reset for ticket collection
         const timeUntilReset = refreshTime - now
         if (
@@ -174,6 +203,7 @@ export class TicketMonitorService {
   private async handlePostRefreshOperations(
     guildId: string,
     channelId: string,
+    forceSummaries = false,
   ): Promise<void> {
     try {
       const guildData = await this.fetchGuildData(guildId)
@@ -189,11 +219,12 @@ export class TicketMonitorService {
         guildData.guild.nextChallengesRefresh,
       )
 
-      // Generate summaries if needed
+      // Generate summaries if needed or forced (in dev mode)
       await this.checkAndGenerateSummaries(
         guildId,
         channelId,
         guildData.guild.profile.name,
+        forceSummaries,
       )
     } catch (error) {
       console.error(
@@ -232,15 +263,21 @@ export class TicketMonitorService {
     guildId: string,
     channelId: string,
     guildName: string,
+    forceGenerate = false,
   ): Promise<void> {
     try {
+      // In regular operation, check if it's the right day
       const now = new Date()
       const isWeeklySummaryTime = now.getDay() === 0 // Sunday
       const isLastDayOfMonth =
         now.getDate() ===
         new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate()
 
-      if (isWeeklySummaryTime) {
+      // Generate weekly summary if it's Sunday or forceGenerate is true
+      if (isWeeklySummaryTime || forceGenerate) {
+        console.log(
+          `Generating weekly summary for guild ${guildId}${forceGenerate ? " (forced)" : ""}`,
+        )
         await this.summaryService.generateWeeklySummary(
           guildId,
           channelId,
@@ -248,7 +285,11 @@ export class TicketMonitorService {
         )
       }
 
-      if (isLastDayOfMonth) {
+      // Generate monthly summary if it's the last day of the month or forceGenerate is true
+      if (isLastDayOfMonth || forceGenerate) {
+        console.log(
+          `Generating monthly summary for guild ${guildId}${forceGenerate ? " (forced)" : ""}`,
+        )
         await this.summaryService.generateMonthlySummary(
           guildId,
           channelId,
@@ -274,24 +315,42 @@ export class TicketMonitorService {
         return
       }
 
-      // Create a message with the violators
-      let message = `# Ticket Violation Report for ${guildName}\n\n`
-      message += `The following ${violators.length} players did not reach 600 daily raid tickets:\n\n`
+      // Create an embed with the violators
+      const embed = new EmbedBuilder()
+        .setColor(0xed4245) // Red color for violations
+        .setTitle(`Ticket Violation Report for ${guildName}`)
+        .setDescription(
+          `The following ${violators.length} players did not reach 600 daily raid tickets`,
+        )
+        .setTimestamp()
 
+      // Sort violators by ticket count (ascending)
       const sortedViolators = [...violators].sort(
         (a, b) => a.tickets - b.tickets,
       )
 
-      for (const violator of sortedViolators) {
-        message += `**${violator.name}**: ${violator.tickets}/600 tickets\n`
-      }
-
-      message += `\nTotal missing tickets: ${sortedViolators.reduce((sum, v) => sum + (600 - v.tickets), 0)}`
-
-      await sendLongMessage(channel, message, {
-        preserveFormat: true,
-        splitOn: ["\n\n", "\n"],
+      // Add each violator to the embed
+      sortedViolators.forEach((violator, index) => {
+        embed.addFields({
+          name: `${index + 1}. ${violator.name}`,
+          value: `${violator.tickets}/600 tickets`,
+          inline: true,
+        })
       })
+
+      // Add total missing tickets
+      const totalMissingTickets = sortedViolators.reduce(
+        (sum, v) => sum + (600 - v.tickets),
+        0,
+      )
+
+      embed.addFields({
+        name: "Total Missing Tickets",
+        value: `${totalMissingTickets}`,
+        inline: false,
+      })
+
+      await channel.send({ embeds: [embed] })
     } catch (error) {
       console.error(
         `Error sending violation notification to channel ${channelId}:`,
