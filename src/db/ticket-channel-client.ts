@@ -2,28 +2,35 @@ import { Pool, QueryResult, QueryResultRow } from "pg"
 
 interface TicketChannelRow extends QueryResultRow {
   guild_id: string
-  channel_id: string
-  next_refresh_time: string
+  ticket_collection_channel_id: string
+  next_ticket_collection_refresh_time: string
+  anniversary_channel_id: string
 }
 
 const QUERIES = {
-  REGISTER_CHANNEL: `
-    INSERT INTO ticketCollectionChannels (guild_id, channel_id, next_refresh_time)
+  REGISTER_TICKET_COLLECTION_CHANNEL: `
+    INSERT INTO guildMessageChannels (guild_id, ticket_collection_channel_id, next_ticket_collection_refresh_time)
     VALUES ($1, $2, $3)
     ON CONFLICT (guild_id) DO UPDATE 
-    SET channel_id = $2, next_refresh_time = $3;
+    SET ticket_collection_channel_id = $2, next_ticket_collection_refresh_time = $3;
   `,
-  GET_CHANNEL: `
-    SELECT guild_id, channel_id, next_refresh_time
-    FROM ticketCollectionChannels
+  REGISTER_ANNIVERSARY_CHANNEL: `
+    INSERT INTO guildMessageChannels (guild_id, anniversary_channel_id)
+    VALUES ($1, $2)
+    ON CONFLICT (guild_id) DO UPDATE 
+    SET anniversary_channel_id = $2;
+  `,
+  GET_GUILD_MESSAGE_CHANNELS: `
+    SELECT guild_id, ticket_collection_channel_id, next_ticket_collection_refresh_time, anniversary_channel_id
+    FROM guildMessageChannels
     WHERE guild_id = $1;
   `,
   GET_ALL_GUILDS: `
-    SELECT guild_id, channel_id, next_refresh_time
-    FROM ticketCollectionChannels;
+    SELECT guild_id, ticket_collection_channel_id, next_ticket_collection_refresh_time, anniversary_channel_id
+    FROM guildMessageChannels;
   `,
   UNREGISTER_CHANNEL: `
-    DELETE FROM ticketCollectionChannels
+    DELETE FROM guildMessageChannels
     WHERE guild_id = $1;
   `,
 } as const
@@ -71,7 +78,7 @@ export class TicketChannelPGClient {
     }
   }
 
-  public async registerChannel(
+  public async registerTicketCollectionChannel(
     guildId: string,
     channelId: string,
     nextRefreshTime: string,
@@ -82,7 +89,7 @@ export class TicketChannelPGClient {
     }
 
     try {
-      await this.query(QUERIES.REGISTER_CHANNEL, [
+      await this.query(QUERIES.REGISTER_TICKET_COLLECTION_CHANNEL, [
         guildId,
         channelId,
         nextRefreshTime,
@@ -94,26 +101,24 @@ export class TicketChannelPGClient {
     }
   }
 
-  public async getGuildData(guildId: string): Promise<TicketChannelRow | null> {
-    if (!guildId) {
-      console.error("Invalid guild ID")
-      return null
+  public async registerAnniversaryChannel(
+    guildId: string,
+    channelId: string,
+  ): Promise<boolean> {
+    if (!guildId || !channelId) {
+      console.error("Invalid guild or channel ID")
+      return false
     }
 
     try {
-      const result = await this.query<TicketChannelRow>(QUERIES.GET_CHANNEL, [
+      await this.query(QUERIES.REGISTER_ANNIVERSARY_CHANNEL, [
         guildId,
+        channelId,
       ])
-
-      if (result.rows.length === 0) {
-        return null
-      }
-
-      const row = result.rows[0]
-      return row || null
+      return true
     } catch (error) {
-      console.error("Error getting ticket collection channel:", error)
-      return null
+      console.error("Error registering anniversary channel:", error)
+      return false
     }
   }
 
@@ -127,7 +132,7 @@ export class TicketChannelPGClient {
     }
   }
 
-  public async getGuildChannel(
+  public async getGuildMessageChannels(
     guildId: string,
   ): Promise<TicketChannelRow | null> {
     if (!guildId) {
@@ -136,17 +141,20 @@ export class TicketChannelPGClient {
     }
 
     try {
-      const result = await this.query<TicketChannelRow>(QUERIES.GET_CHANNEL, [
-        guildId,
-      ])
+      const result = await this.query<TicketChannelRow>(
+        QUERIES.GET_GUILD_MESSAGE_CHANNELS,
+        [guildId],
+      )
       return result.rows[0] || null
     } catch (error) {
-      console.error("Error getting ticket collection channel:", error)
+      console.error("Error getting guild message channels:", error)
       return null
     }
   }
 
-  public async unregisterChannel(guildId: string): Promise<boolean> {
+  public async unregisterTicketCollectionChannel(
+    guildId: string,
+  ): Promise<boolean> {
     if (!guildId) {
       console.error("Invalid guild ID")
       return false

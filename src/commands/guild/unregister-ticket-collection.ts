@@ -81,7 +81,7 @@ export class UnregisterTicketCollectionCommand extends Command {
 
       // Check if the guild is registered for monitoring
       const monitoringData =
-        await container.ticketChannelClient.getGuildChannel(
+        await container.ticketChannelClient.getGuildMessageChannels(
           comlinkGuild.guild.profile.id,
         )
       if (!monitoringData) {
@@ -92,9 +92,10 @@ export class UnregisterTicketCollectionCommand extends Command {
       }
 
       // Unregister the guild
-      const success = await container.ticketChannelClient.unregisterChannel(
-        comlinkPlayer.guildId,
-      )
+      const success =
+        await container.ticketChannelClient.unregisterTicketCollectionChannel(
+          comlinkPlayer.guildId,
+        )
       if (!success) {
         return interaction.editReply({
           content: "Failed to unregister guild. Please try again later.",

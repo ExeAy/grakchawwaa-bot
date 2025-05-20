@@ -18,10 +18,11 @@ const initializeHerokuDatabase = async (): Promise<void> => {
       PRIMARY KEY (guild_id, date)
     );
 
-    CREATE TABLE IF NOT EXISTS ticketCollectionChannels (
+    CREATE TABLE IF NOT EXISTS guildMessageChannels (
       guild_id text NOT NULL PRIMARY KEY,
-      channel_id text NOT NULL,
-      next_refresh_time text NOT NULL
+      ticket_collection_channel_id text,
+      next_ticket_collection_refresh_time text,
+      anniversary_channel_id text
     );
 
     -- Create a function to delete old records

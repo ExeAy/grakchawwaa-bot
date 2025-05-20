@@ -240,7 +240,7 @@ export class TicketMonitorService {
     newRefreshTime: string,
   ): Promise<void> {
     try {
-      await container.ticketChannelClient.registerChannel(
+      await container.ticketChannelClient.registerTicketCollectionChannel(
         guildId,
         channelId,
         newRefreshTime,

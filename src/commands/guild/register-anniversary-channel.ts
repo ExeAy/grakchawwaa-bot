@@ -2,7 +2,15 @@ import { Command } from "@sapphire/framework"
 import { container } from "@sapphire/pieces"
 import { channelMention, TextChannel } from "discord.js"
 
-// Types for Comlink data
+interface CommandResponse<T = undefined> {
+  success: boolean
+  response: {
+    content: string
+    ephemeral?: boolean
+  }
+  value?: T
+}
+
 interface ComlinkGuildMember {
   playerId: string
   memberLevel: number
@@ -16,27 +24,9 @@ interface ComlinkPlayerData {
 
 interface ComlinkGuildData {
   member?: ComlinkGuildMember[]
-  nextChallengesRefresh?: string
 }
 
-interface CommandResponse<T = undefined> {
-  success: boolean
-  response: {
-    content: string
-    ephemeral?: boolean
-  }
-  value?: T
-}
-
-interface GuildRegistrationData {
-  guildId: string
-  guildName: string
-  nextRefreshTime: string
-  playerData: ComlinkPlayerData
-  guild: ComlinkGuildData
-}
-
-export class RegisterTicketCollectionCommand extends Command {
+export class RegisterAnniversaryChannelCommand extends Command {
   public constructor(context: Command.LoaderContext, options: Command.Options) {
     super(context, {
       ...options,
@@ -47,12 +37,16 @@ export class RegisterTicketCollectionCommand extends Command {
     registry.registerChatInputCommand(
       (builder) =>
         builder
-          .setName("register-ticket-collection")
-          .setDescription("Register a guild for ticket collection monitoring")
+          .setName("register-anniversary-channel")
+          .setDescription(
+            "Register a channel for guild member anniversary notifications",
+          )
           .addChannelOption((option) =>
             option
               .setName("channel")
-              .setDescription("Discord channel to post ticket summaries")
+              .setDescription(
+                "Discord channel to post guild member anniversary announcements",
+              )
               .setRequired(true),
           )
           .addStringOption((option) =>
@@ -61,7 +55,7 @@ export class RegisterTicketCollectionCommand extends Command {
               .setDescription("Ally code of a guild member (optional)")
               .setRequired(false),
           ),
-      { idHints: ["1370692224269942865"] },
+      { idHints: [] },
     )
   }
 
@@ -97,7 +91,7 @@ export class RegisterTicketCollectionCommand extends Command {
       }
 
       const registration = await this.registerGuildChannel(
-        guildData.value,
+        guildData.value.guildId,
         channel.value.id,
       )
       if (!registration.success) {
@@ -108,7 +102,6 @@ export class RegisterTicketCollectionCommand extends Command {
         content: this.formatSuccessMessage(
           channel.value.id,
           guildData.value.guildName,
-          guildData.value.nextRefreshTime,
         ),
       })
     } catch (error) {
@@ -121,7 +114,7 @@ export class RegisterTicketCollectionCommand extends Command {
         })
       }
 
-      console.error("Error in register-ticket-collection command:", error)
+      console.error("Error in register-anniversary-channel command:", error)
       return await interaction.editReply({
         content:
           "An error occurred while processing your request. Please try again later.",
@@ -181,9 +174,14 @@ export class RegisterTicketCollectionCommand extends Command {
     }
   }
 
-  private async fetchGuildData(
-    allyCode: string,
-  ): Promise<CommandResponse<GuildRegistrationData>> {
+  private async fetchGuildData(allyCode: string): Promise<
+    CommandResponse<{
+      guildId: string
+      guildName: string
+      playerData: ComlinkPlayerData
+      guild: ComlinkGuildData
+    }>
+  > {
     const playerData = await container.comlinkClient.getPlayer(allyCode)
     if (!playerData?.guildId) {
       return {
@@ -198,11 +196,11 @@ export class RegisterTicketCollectionCommand extends Command {
       playerData.guildId,
       true,
     )
-    if (!guildData?.guild?.nextChallengesRefresh) {
+    if (!guildData?.guild) {
       return {
         success: false,
         response: {
-          content: `Could not retrieve guild refresh time for guild: ${
+          content: `Could not retrieve guild data for guild: ${
             playerData.guildName || "Unknown Guild"
           }. Please try again later.`,
         },
@@ -215,7 +213,6 @@ export class RegisterTicketCollectionCommand extends Command {
       value: {
         guildId: playerData.guildId,
         guildName: playerData.guildName || "Unknown Guild",
-        nextRefreshTime: guildData.guild.nextChallengesRefresh,
         playerData,
         guild: guildData.guild,
       },
@@ -234,7 +231,7 @@ export class RegisterTicketCollectionCommand extends Command {
         success: false,
         response: {
           content:
-            "Only guild leaders and officers can register the guild for ticket monitoring.",
+            "Only guild leaders and officers can register the guild for anniversary notifications.",
         },
       }
     }
@@ -242,14 +239,13 @@ export class RegisterTicketCollectionCommand extends Command {
   }
 
   private async registerGuildChannel(
-    guildData: GuildRegistrationData,
+    guildId: string,
     channelId: string,
   ): Promise<CommandResponse> {
     const success =
-      await container.ticketChannelClient.registerTicketCollectionChannel(
-        guildData.guildId,
+      await container.ticketChannelClient.registerAnniversaryChannel(
+        guildId,
         channelId,
-        guildData.nextRefreshTime,
       )
 
     if (!success) {
@@ -257,7 +253,7 @@ export class RegisterTicketCollectionCommand extends Command {
         success: false,
         response: {
           content:
-            "Failed to register ticket collection channel. Please try again later.",
+            "Failed to register anniversary channel. Please try again later.",
         },
       }
     }
@@ -265,16 +261,9 @@ export class RegisterTicketCollectionCommand extends Command {
     return { success: true, response: { content: "" } }
   }
 
-  private formatSuccessMessage(
-    channelId: string,
-    guildName: string,
-    nextRefreshTime: string,
-  ): string {
-    const refreshDate = new Date(parseInt(nextRefreshTime) * 1000)
-    const refreshTimeFormatted = refreshDate.toLocaleString()
-
+  private formatSuccessMessage(channelId: string, guildName: string): string {
     return `Successfully registered ${channelMention(
       channelId,
-    )} for ticket collection monitoring for guild: ${guildName}\nNext ticket reset time: ${refreshTimeFormatted}`
+    )} for anniversary notifications for guild: ${guildName}`
   }
 }
