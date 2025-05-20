@@ -10,7 +10,7 @@ const initializeDatabase = async (): Promise<void> => {
       alt_ally_codes char(9)[]
     );
 
-    DROP TABLE IF EXISTS ticketCollectionChannels;
+    DROP TABLE IF EXISTS ticketViolations;
 
     CREATE TABLE IF NOT EXISTS ticketViolations (
       guild_id text NOT NULL,
