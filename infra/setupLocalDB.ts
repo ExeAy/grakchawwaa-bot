@@ -26,10 +26,10 @@ const initializeDatabase = async (): Promise<void> => {
   `
 
   const client = new Client({
-    user: "hfal0t",
-    host: "localhost",
-    database: "grakchawaa",
-    port: 5432,
+    user: process.env.PGUSER,
+    host: process.env.PGHOST,
+    database: process.env.PGDATABASE,
+    port: parseInt(process.env.PGPORT || "5432"),
   })
 
   try {
