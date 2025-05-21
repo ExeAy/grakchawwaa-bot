@@ -24,7 +24,8 @@ export class TicketMonitorService {
   constructor(client: DiscordBotClient) {
     this.client = client
     this.summaryService = new ViolationSummaryService(client)
-    this.isDevMode = process.env.NODE_ENV === "development"
+    // this.isDevMode = process.env.NODE_ENV === "development"
+    this.isDevMode = false
   }
 
   public start(): void {

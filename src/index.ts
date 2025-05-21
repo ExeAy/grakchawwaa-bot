@@ -1,5 +1,6 @@
 import { setupPostgresClients } from "./db/postgres-client"
 import { DiscordBotClient } from "./discord-bot-client"
+import { AnniversaryMonitorService } from "./services/anniversary-monitor"
 import { setupComlinkClient } from "./services/comlink/comlink-service"
 import { setupServices } from "./services/setup-services"
 import { TicketMonitorService } from "./services/ticket-monitor"
@@ -15,6 +16,10 @@ client.on("ready", () => {
   // Start the ticket monitoring service
   const ticketMonitor = new TicketMonitorService(client)
   ticketMonitor.start()
+
+  // Start the anniversary monitoring service
+  const anniversaryMonitor = new AnniversaryMonitorService(client)
+  anniversaryMonitor.start()
 })
 
 client
