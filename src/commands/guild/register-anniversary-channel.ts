@@ -55,7 +55,7 @@ export class RegisterAnniversaryChannelCommand extends Command {
               .setDescription("Ally code of a guild member (optional)")
               .setRequired(false),
           ),
-      { idHints: [] },
+      { idHints: ["1374799120535126056"] },
     )
   }
 
