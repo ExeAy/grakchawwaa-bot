@@ -18,6 +18,8 @@ Discord bot for Star Wars: Galaxy of Heroes guild management.
   - `channel` - Discord channel to post anniversary messages (required)
   - `ally-code` - Ally code of a guild member (optional if already registered)
 
+- `/unregister-anniversary-channel` - Removes guild anniversary notifications
+
 - `/get-guild-members` - Get a list of all members in a guild
   - `ally-code` - Ally code of a guild member (optional if already registered)
 

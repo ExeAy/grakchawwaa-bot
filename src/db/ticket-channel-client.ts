@@ -20,6 +20,11 @@ const QUERIES = {
     ON CONFLICT (guild_id) DO UPDATE 
     SET anniversary_channel_id = $2;
   `,
+  UNREGISTER_ANNIVERSARY_CHANNEL: `
+    UPDATE guildMessageChannels
+    SET anniversary_channel_id = NULL
+    WHERE guild_id = $1;
+  `,
   GET_GUILD_MESSAGE_CHANNELS: `
     SELECT guild_id, ticket_collection_channel_id, next_ticket_collection_refresh_time, anniversary_channel_id
     FROM guildMessageChannels
@@ -118,6 +123,21 @@ export class TicketChannelPGClient {
       return true
     } catch (error) {
       console.error("Error registering anniversary channel:", error)
+      return false
+    }
+  }
+
+  public async unregisterAnniversaryChannel(guildId: string): Promise<boolean> {
+    if (!guildId) {
+      console.error("Invalid guild ID")
+      return false
+    }
+
+    try {
+      await this.query(QUERIES.UNREGISTER_ANNIVERSARY_CHANNEL, [guildId])
+      return true
+    } catch (error) {
+      console.error("Error unregistering anniversary channel:", error)
       return false
     }
   }
