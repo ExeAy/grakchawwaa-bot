@@ -18,7 +18,7 @@ export class UnregisterAnniversaryChannelCommand extends Command {
           .setName(this.name)
           .setDescription(this.description)
           .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
-      { idHints: [] },
+      { idHints: ["1374809370524782695"] },
     )
   }
 
