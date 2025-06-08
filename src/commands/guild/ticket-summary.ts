@@ -25,7 +25,7 @@ export class TicketSummaryCommand extends Command {
               .setMinValue(1)
               .setMaxValue(90),
           ),
-      { idHints: ["1376565769248444477"] },
+      { idHints: ["1376565769248444477", "1381228170006630514"] },
     )
   }
 
