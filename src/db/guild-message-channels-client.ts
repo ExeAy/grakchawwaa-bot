@@ -40,7 +40,7 @@ const QUERIES = {
   `,
 } as const
 
-export class TicketChannelPGClient {
+export class GuildMessageChannelsClient {
   private pool: Pool
 
   constructor() {

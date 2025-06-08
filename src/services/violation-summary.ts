@@ -83,11 +83,52 @@ export class ViolationSummaryService {
     }
   }
 
+  public async generateCustomPeriodSummary(
+    guildId: string,
+    channelId: string,
+    guildName: string,
+    days: number,
+  ): Promise<void> {
+    try {
+      // Validate days parameter
+      if (days < 1 || days > 90) {
+        console.error(`Invalid days value: ${days}. Must be between 1 and 90.`)
+        return
+      }
+
+      const violations =
+        await container.ticketViolationClient.getCustomPeriodViolations(
+          guildId,
+          days,
+        )
+      if (!violations.length) {
+        console.log(
+          `No violations found for ${days}-day summary for guild ${guildId}`,
+        )
+        return
+      }
+
+      const reportType = `${days}-Day`
+      await this.sendSummaryReport(
+        channelId,
+        guildName,
+        violations,
+        reportType,
+        days,
+      )
+    } catch (error) {
+      console.error(
+        `Error generating ${days}-day summary for guild ${guildId}:`,
+        error,
+      )
+    }
+  }
+
   private async sendSummaryReport(
     channelId: string,
     guildName: string,
     violations: TicketViolationRow[],
-    reportType: "Weekly" | "Monthly",
+    reportType: "Weekly" | "Monthly" | string,
     daysInPeriod: number,
   ): Promise<void> {
     try {
@@ -185,7 +226,7 @@ export class ViolationSummaryService {
   private createPlayerStatsEmbed(
     playerStats: ViolationSummary[],
     guildName: string,
-    reportType: "Weekly" | "Monthly",
+    reportType: "Weekly" | "Monthly" | string,
     page: number,
     totalPages: number,
   ): EmbedBuilder {

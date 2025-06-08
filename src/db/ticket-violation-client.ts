@@ -18,18 +18,11 @@ const QUERIES = {
     ORDER BY date DESC
     LIMIT 7;
   `,
-  GET_WEEKLY_VIOLATIONS: `
+  GET_CUSTOM_PERIOD_VIOLATIONS: `
     SELECT guild_id, date, ticket_counts
     FROM ticketViolations
     WHERE guild_id = $1
-      AND date >= NOW() - INTERVAL '7 days'
-    ORDER BY date DESC;
-  `,
-  GET_MONTHLY_VIOLATIONS: `
-    SELECT guild_id, date, ticket_counts
-    FROM ticketViolations
-    WHERE guild_id = $1
-      AND date >= NOW() - INTERVAL '90 days'
+      AND date >= NOW() - INTERVAL '$2 days'
     ORDER BY date DESC;
   `,
 } as const
@@ -141,39 +134,37 @@ export class TicketViolationPGClient {
   public async getWeeklyViolations(
     guildId: string,
   ): Promise<TicketViolationRow[]> {
-    if (!guildId) {
-      console.error("Invalid guild ID")
-      return []
-    }
-
-    try {
-      const result = await this.query<TicketViolationRow>(
-        QUERIES.GET_WEEKLY_VIOLATIONS,
-        [guildId],
-      )
-      return this.processRows(result.rows)
-    } catch (error) {
-      console.error("Error getting weekly ticket violations:", error)
-      return []
-    }
+    return this.getCustomPeriodViolations(guildId, 7)
   }
 
   public async getMonthlyViolations(
     guildId: string,
   ): Promise<TicketViolationRow[]> {
-    if (!guildId) {
-      console.error("Invalid guild ID")
+    return this.getCustomPeriodViolations(guildId, 30)
+  }
+
+  public async getCustomPeriodViolations(
+    guildId: string,
+    days: number,
+  ): Promise<TicketViolationRow[]> {
+    if (!guildId || days < 1 || days > 90) {
+      console.error("Invalid guild ID or days value")
       return []
     }
 
     try {
-      const result = await this.query<TicketViolationRow>(
-        QUERIES.GET_MONTHLY_VIOLATIONS,
-        [guildId],
-      )
+      // For parameterized intervals, we need to build the query dynamically
+      const query = `
+        SELECT guild_id, date, ticket_counts
+        FROM ticketViolations
+        WHERE guild_id = $1
+          AND date >= NOW() - INTERVAL '${days} days'
+        ORDER BY date DESC;
+      `
+      const result = await this.query<TicketViolationRow>(query, [guildId])
       return this.processRows(result.rows)
     } catch (error) {
-      console.error("Error getting monthly ticket violations:", error)
+      console.error(`Error getting ${days}-day ticket violations:`, error)
       return []
     }
   }
