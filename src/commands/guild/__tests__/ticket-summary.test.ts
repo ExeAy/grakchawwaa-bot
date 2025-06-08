@@ -122,7 +122,10 @@ describe("TicketSummaryCommand", () => {
       expect(mockOption.setRequired).toHaveBeenCalledWith(true)
       expect(mockOption.setMinValue).toHaveBeenCalledWith(1)
       expect(mockOption.setMaxValue).toHaveBeenCalledWith(90)
-      expect(options.idHints).toEqual(["1376565769248444477"])
+      expect(options.idHints).toEqual([
+        "1376565769248444477",
+        "1381228170006630514",
+      ])
     })
   })
 
