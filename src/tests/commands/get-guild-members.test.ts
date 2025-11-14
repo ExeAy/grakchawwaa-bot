@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { ComlinkGuildMember } from "@swgoh-utils/comlink"
-import { GetGuildMembersCommand } from "../get-guild-members"
+import { GetGuildMembersCommand } from "../../commands/guild/get-guild-members"
 
 // Mock dependencies
 jest.mock("@sapphire/framework", () => ({
@@ -23,7 +23,7 @@ jest.mock("@sapphire/pieces", () => ({
   },
 }))
 
-jest.mock("../../../services/comlink/cached-comlink-client", () => ({
+jest.mock("../../services/comlink/cached-comlink-client", () => ({
   CachedComlinkClient: {
     getInstance: jest.fn().mockReturnValue({
       getGuild: jest.fn(),
@@ -148,7 +148,8 @@ describe("GetGuildMembersCommand", () => {
   describe("createMemberEmbed", () => {
     it("should correctly format member data in an embed", () => {
       // Access private method
-      const createMemberEmbed = (command as any).createMemberEmbed.bind(command)
+      const createMemberEmbed =
+        (command as any).createMemberEmbed.bind(command)
 
       // Mock data
       const members: Partial<ComlinkGuildMember>[] = [
@@ -248,3 +249,4 @@ describe("GetGuildMembersCommand", () => {
     })
   })
 })
+

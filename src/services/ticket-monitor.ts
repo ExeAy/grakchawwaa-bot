@@ -20,10 +20,15 @@ export class TicketMonitorService {
   private static CHECK_BEFORE_RESET = 2 * 60 * 1000 // 2 minutes before reset
   private static REFRESH_UPDATE_DELAY = 5 * 60 * 1000 // 5 minutes wait for refresh update
   private isDevMode: boolean
+  private static EMBED_FIELD_LIMIT = 25
+  private static EMBEDS_PER_MESSAGE = 10
 
-  constructor(client: DiscordBotClient) {
+  constructor(
+    client: DiscordBotClient,
+    summaryService?: ViolationSummaryService,
+  ) {
     this.client = client
-    this.summaryService = new ViolationSummaryService(client)
+    this.summaryService = summaryService ?? new ViolationSummaryService(client)
     this.isDevMode = process.env.NODE_ENV === "development"
   }
 
@@ -322,47 +327,88 @@ export class TicketMonitorService {
         return
       }
 
-      // Create an embed with the violators
-      const embed = new EmbedBuilder()
-        .setColor(0xed4245) // Red color for violations
-        .setTitle(`Ticket Violation Report for ${guildName}`)
-        .setDescription(
-          `The following ${violators.length} players did not reach 600 daily raid tickets`,
-        )
-        .setTimestamp()
+      const embeds = this.buildViolationEmbeds(guildName, violators)
+      if (!embeds.length) {
+        return
+      }
 
-      // Sort violators by ticket count (ascending)
-      const sortedViolators = [...violators].sort(
-        (a, b) => a.tickets - b.tickets,
-      )
-
-      // Add each violator to the embed
-      sortedViolators.forEach((violator, index) => {
-        embed.addFields({
-          name: `${index + 1}. ${violator.name}`,
-          value: `${violator.tickets}/600 tickets`,
-          inline: true,
-        })
-      })
-
-      // Add total missing tickets
-      const totalMissingTickets = sortedViolators.reduce(
-        (sum, v) => sum + (600 - v.tickets),
-        0,
-      )
-
-      embed.addFields({
-        name: "Total Missing Tickets",
-        value: `${totalMissingTickets}`,
-        inline: false,
-      })
-
-      await channel.send({ embeds: [embed] })
+      const batches = this.chunkEmbeds(embeds)
+      for (const batch of batches) {
+        await channel.send({ embeds: batch })
+      }
     } catch (error) {
       console.error(
         `Error sending violation notification to channel ${channelId}:`,
         error,
       )
     }
+  }
+
+  private buildViolationEmbeds(
+    guildName: string,
+    violators: TicketViolator[],
+  ): EmbedBuilder[] {
+    if (!violators.length) {
+      return []
+    }
+
+    const sortedViolators = [...violators].sort(
+      (a, b) => a.tickets - b.tickets,
+    )
+    const totalMissingTickets = sortedViolators.reduce(
+      (sum, violator) => sum + (600 - violator.tickets),
+      0,
+    )
+
+    const chunkSize = TicketMonitorService.EMBED_FIELD_LIMIT
+    const embedChunks: EmbedBuilder[] = []
+
+    for (let index = 0; index < sortedViolators.length; index += chunkSize) {
+      const chunk = sortedViolators.slice(index, index + chunkSize)
+      const embed = new EmbedBuilder()
+        .setColor(0xed4245)
+        .setTitle(
+          index === 0
+            ? `Ticket Violation Report for ${guildName}`
+            : `Ticket Violation Report (cont.) - ${guildName}`,
+        )
+        .setTimestamp()
+
+      if (index === 0) {
+        embed
+          .setDescription(
+            `The following ${violators.length} players did not reach 600 daily raid tickets`,
+          )
+          .setFooter({
+            text: `Total missing tickets: ${totalMissingTickets}`,
+          })
+      }
+
+      chunk.forEach((violator, position) => {
+        const rank = index + position + 1
+        embed.addFields({
+          name: `${rank}. ${violator.name}`,
+          value: `${violator.tickets}/600 tickets`,
+          inline: true,
+        })
+      })
+
+      embedChunks.push(embed)
+    }
+
+    return embedChunks
+  }
+
+  private chunkEmbeds(
+    embeds: EmbedBuilder[],
+  ): EmbedBuilder[][] {
+    const batches: EmbedBuilder[][] = []
+    const batchSize = TicketMonitorService.EMBEDS_PER_MESSAGE
+
+    for (let index = 0; index < embeds.length; index += batchSize) {
+      batches.push(embeds.slice(index, index + batchSize))
+    }
+
+    return batches
   }
 }

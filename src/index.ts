@@ -4,22 +4,32 @@ import { AnniversaryMonitorService } from "./services/anniversary-monitor"
 import { setupComlinkClient } from "./services/comlink/comlink-service"
 import { setupServices } from "./services/setup-services"
 import { TicketMonitorService } from "./services/ticket-monitor"
+import { ViolationSummaryService } from "./services/violation-summary"
 
 setupPostgresClients()
 setupServices()
 setupComlinkClient()
 
 const client = new DiscordBotClient()
+const summaryService = new ViolationSummaryService(client)
 client.on("ready", () => {
   console.log(`Logged in as ${client.user?.tag}!`)
 
   // Start the ticket monitoring service
-  const ticketMonitor = new TicketMonitorService(client)
+  const ticketMonitor = new TicketMonitorService(client, summaryService)
   ticketMonitor.start()
 
   // Start the anniversary monitoring service
   const anniversaryMonitor = new AnniversaryMonitorService(client)
   anniversaryMonitor.start()
+})
+
+client.on("interactionCreate", async (interaction) => {
+  if (!interaction.isButton()) {
+    return
+  }
+
+  await summaryService.handleFullListButton(interaction)
 })
 
 client

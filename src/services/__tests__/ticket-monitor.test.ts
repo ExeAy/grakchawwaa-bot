@@ -9,6 +9,24 @@ interface TicketViolator {
   tickets: number
 }
 
+const originalConsoleLog = console.log
+const originalConsoleError = console.error
+
+beforeAll(() => {
+  console.log = jest.fn()
+  console.error = jest.fn()
+})
+
+afterEach(() => {
+  ;(console.log as jest.Mock).mockClear()
+  ;(console.error as jest.Mock).mockClear()
+})
+
+afterAll(() => {
+  console.log = originalConsoleLog
+  console.error = originalConsoleError
+})
+
 // Mock dependencies without importing them directly
 jest.mock("../../discord-bot-client", () => ({
   DiscordBotClient: jest.fn().mockImplementation(() => ({
@@ -43,6 +61,7 @@ const mockSetTitle = jest.fn().mockReturnThis()
 const mockSetDescription = jest.fn().mockReturnThis()
 const mockSetTimestamp = jest.fn().mockReturnThis()
 const mockAddFields = jest.fn().mockReturnThis()
+const mockSetFooter = jest.fn().mockReturnThis()
 
 // Mock discord.js
 jest.mock("discord.js", () => ({
@@ -52,6 +71,7 @@ jest.mock("discord.js", () => ({
     setDescription: mockSetDescription,
     setTimestamp: mockSetTimestamp,
     addFields: mockAddFields,
+    setFooter: mockSetFooter,
   })),
   TextChannel: jest.fn(),
 }))
@@ -236,9 +256,6 @@ describe("TicketMonitorService", () => {
 
       const violators: TicketViolator[] = [] // Empty array
 
-      // Spy on console.log
-      const consoleSpy = jest.spyOn(console, "log").mockImplementation()
-
       // Call the method
       await handleViolations(guildId, channelId, guildData, violators)
 
@@ -248,12 +265,9 @@ describe("TicketMonitorService", () => {
       ).not.toHaveBeenCalled()
 
       // Verify log message was output
-      expect(consoleSpy).toHaveBeenCalledWith(
+      expect(console.log).toHaveBeenCalledWith(
         expect.stringContaining("No ticket violations found"),
       )
-
-      // Clean up
-      consoleSpy.mockRestore()
     })
   })
 
@@ -291,8 +305,11 @@ describe("TicketMonitorService", () => {
       )
       expect(mockSetTimestamp).toHaveBeenCalled()
 
-      // Verify addFields was called for each violator and total
-      expect(mockAddFields).toHaveBeenCalledTimes(3)
+      // Verify addFields was called for each violator
+      expect(mockAddFields).toHaveBeenCalledTimes(2)
+      expect(mockSetFooter).toHaveBeenCalledWith({
+        text: "Total missing tickets: 400",
+      })
 
       // Verify channel.send was called with the embed
       expect(mockChannel.send).toHaveBeenCalledWith({
@@ -311,23 +328,17 @@ describe("TicketMonitorService", () => {
         isTextBased: jest.fn().mockReturnValue(false),
       })
 
-      // Setup console.error spy
-      const consoleSpy = jest.spyOn(console, "error").mockImplementation()
-
       // Call the method
       await sendViolationNotification("channel123", "Test Guild", [
         { id: "player1", name: "Player 1", tickets: 500 },
       ])
 
       // Verify error was logged
-      expect(consoleSpy).toHaveBeenCalledWith(
+      expect(console.error).toHaveBeenCalledWith(
         expect.stringContaining(
           "Channel channel123 not found or not a text channel",
         ),
       )
-
-      // Clean up
-      consoleSpy.mockRestore()
     })
   })
 
