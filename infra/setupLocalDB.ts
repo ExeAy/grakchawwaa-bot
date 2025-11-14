@@ -1,6 +1,25 @@
 import { Client } from "pg"
 import { setupPostgresClients } from "../src/db/postgres-client"
 
+const REQUIRED_ENV_VARS = [
+  "PGUSER",
+  "PGHOST",
+  "PGPASSWORD",
+  "PGDATABASE",
+] as const
+
+const ensureDatabaseEnv = (): void => {
+  const missingEnv = REQUIRED_ENV_VARS.filter(
+    (variable) => !process.env[variable],
+  )
+
+  if (missingEnv.length > 0) {
+    throw new Error(
+      `Missing environment variables: ${missingEnv.join(", ")}`,
+    )
+  }
+}
+
 const initializeDatabase = async (): Promise<void> => {
   const createTablesQuery = `
 
@@ -28,8 +47,9 @@ const initializeDatabase = async (): Promise<void> => {
   const client = new Client({
     user: process.env.PGUSER,
     host: process.env.PGHOST,
+    password: process.env.PGPASSWORD,
     database: process.env.PGDATABASE,
-    port: parseInt(process.env.PGPORT || "5432"),
+    port: parseInt(process.env.PGPORT || "5432", 10),
   })
 
   try {
@@ -38,6 +58,7 @@ const initializeDatabase = async (): Promise<void> => {
     console.log("Local database tables created successfully.")
   } catch (error) {
     console.error("Error creating local database tables:", error)
+    throw error
   } finally {
     await client.end()
   }
@@ -45,10 +66,15 @@ const initializeDatabase = async (): Promise<void> => {
 
 ;(async () => {
   try {
+    ensureDatabaseEnv()
     setupPostgresClients()
     await initializeDatabase()
     console.log("Local database initialization complete.")
   } catch (error) {
-    console.error("Error during local database initialization:", error)
+    console.error(
+      "Error during local database initialization:",
+      error,
+    )
+    process.exitCode = 1
   }
 })()

@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { EmbedBuilder } from "discord.js"
 import { TicketViolationRow } from "../../db/ticket-violation-client"
 import { ViolationSummaryService } from "../violation-summary"
 
@@ -29,14 +28,36 @@ jest.mock("@sapphire/pieces", () => ({
 }))
 
 // Mock discord.js
+const mockSetColor = jest.fn().mockReturnThis()
+const mockSetTitle = jest.fn().mockReturnThis()
+const mockSetDescription = jest.fn().mockReturnThis()
+const mockSetTimestamp = jest.fn().mockReturnThis()
+const mockAddFields = jest.fn().mockReturnThis()
+const mockSetFooter = jest.fn().mockReturnThis()
+const mockAddComponents = jest.fn().mockReturnThis()
+const mockSetCustomId = jest.fn().mockReturnThis()
+const mockSetLabel = jest.fn().mockReturnThis()
+const mockSetStyle = jest.fn().mockReturnThis()
+
 jest.mock("discord.js", () => ({
   EmbedBuilder: jest.fn().mockImplementation(() => ({
-    setColor: jest.fn().mockReturnThis(),
-    setTitle: jest.fn().mockReturnThis(),
-    setDescription: jest.fn().mockReturnThis(),
-    setTimestamp: jest.fn().mockReturnThis(),
-    addFields: jest.fn().mockReturnThis(),
+    setColor: mockSetColor,
+    setTitle: mockSetTitle,
+    setDescription: mockSetDescription,
+    setTimestamp: mockSetTimestamp,
+    addFields: mockAddFields,
+    setFooter: mockSetFooter,
   })),
+  ActionRowBuilder: jest.fn().mockImplementation(() => ({
+    addComponents: mockAddComponents,
+  })),
+  ButtonBuilder: jest.fn().mockImplementation(() => ({
+    setCustomId: mockSetCustomId,
+    setLabel: mockSetLabel,
+    setStyle: mockSetStyle,
+  })),
+  ButtonStyle: { Secondary: "Secondary" },
+  MessageFlags: { Ephemeral: 64 },
   TextChannel: jest.fn(),
 }))
 
@@ -199,171 +220,87 @@ describe("ViolationSummaryService", () => {
 
   describe("sendSummaryReport", () => {
     it("should generate and send a formatted report", async () => {
-      // Access the private method
       const sendSummaryReport = (service as any).sendSummaryReport.bind(service)
 
-      // Create test data
-      const channelId = "channel123"
-      const guildName = "Test Guild"
-      const violations: TicketViolationRow[] = [
-        {
-          guild_id: "123456789",
-          date: new Date(),
-          ticket_counts: {
-            player1: 500,
-            player2: 600,
+      const context = {
+        guildId: "123456789",
+        channelId: "channel123",
+        guildName: "Test Guild",
+        violations: [
+          {
+            guild_id: "123456789",
+            date: new Date(),
+            ticket_counts: {
+              player1: 500,
+              player2: 600,
+            },
           },
-        },
-      ]
+        ] as TicketViolationRow[],
+        reportLabel: "Weekly",
+        daysInPeriod: 7,
+      }
 
-      // Mock guild data response
-      mockContainer.cachedComlinkClient.getGuild.mockResolvedValue({
-        guild: {
-          member: [
-            { playerId: "player1", playerName: "Test Player 1" },
-            { playerId: "player2", playerName: "Test Player 2" },
+      jest
+        .spyOn(service as any, "getSortedPlayerStats")
+        .mockResolvedValue({
+          stats: [
+            {
+              playerName: "Test Player 1",
+              violationCount: 1,
+              averageTickets: 500,
+              totalMissingTickets: 100,
+            },
+            {
+              playerName: "Test Player 2",
+              violationCount: 1,
+              averageTickets: 600,
+              totalMissingTickets: 0,
+            },
           ],
-        },
+          guildName: "Test Guild",
+        })
+
+      const buttonRow = { type: "row" }
+      jest
+        .spyOn(service as any, "createFullListButton")
+        .mockReturnValue(buttonRow)
+
+      await sendSummaryReport(context)
+
+      expect(mockClient.channels.fetch).toHaveBeenCalledWith("channel123")
+      expect(mockChannel.send).toHaveBeenCalledWith({
+        content: expect.stringContaining("Weekly Ticket Summary"),
+        components: [buttonRow],
       })
-
-      // Spy on calculatePlayerStats
-      const calculatePlayerStatsSpy = jest
-        .spyOn(service as any, "calculatePlayerStats")
-        .mockReturnValue(
-          new Map([
-            [
-              "player1",
-              {
-                playerName: "Test Player 1",
-                violationCount: 1,
-                averageTickets: 500,
-                totalMissingTickets: 100,
-              },
-            ],
-            [
-              "player2",
-              {
-                playerName: "Test Player 2",
-                violationCount: 1,
-                averageTickets: 600,
-                totalMissingTickets: 0,
-              },
-            ],
-          ]),
-        )
-
-      // Spy on createPlayerStatsEmbed
-      const createPlayerStatsEmbedSpy = jest
-        .spyOn(service as any, "createPlayerStatsEmbed")
-        .mockReturnValue(new EmbedBuilder())
-
-      // Call the method
-      await sendSummaryReport(channelId, guildName, violations, "Weekly", 7)
-
-      // Verify channel was fetched
-      expect(mockClient.channels.fetch).toHaveBeenCalledWith(channelId)
-
-      // Verify guild data was fetched
-      expect(mockContainer.cachedComlinkClient.getGuild).toHaveBeenCalledWith(
-        "123456789",
-        true,
-      )
-
-      // Verify calculatePlayerStats was called
-      expect(calculatePlayerStatsSpy).toHaveBeenCalledWith(
-        violations,
-        7,
-        expect.any(Map),
-      )
-
-      // Verify EmbedBuilder was used
-      expect(EmbedBuilder).toHaveBeenCalled()
-
-      // Verify channel.send was called with embeds
-      expect(mockChannel.send).toHaveBeenCalledWith(
-        expect.objectContaining({
-          embeds: expect.any(Array),
-        }),
-      )
-
-      // Clean up
-      calculatePlayerStatsSpy.mockRestore()
-      createPlayerStatsEmbedSpy.mockRestore()
     })
 
     it("should handle error when channel is not found", async () => {
-      // Access the private method
       const sendSummaryReport = (service as any).sendSummaryReport.bind(service)
 
-      // Mock channel fetch to return a non-text channel
       mockClient.channels.fetch.mockResolvedValueOnce({
         isTextBased: jest.fn().mockReturnValue(false),
       })
 
-      // Setup console.error spy
       const consoleSpy = jest.spyOn(console, "error").mockImplementation()
 
-      // Call the method
-      await sendSummaryReport(
-        "channel123",
-        "Test Guild",
-        [{ guild_id: "123456789", date: new Date(), ticket_counts: {} }],
-        "Weekly",
-        7,
-      )
+      await sendSummaryReport({
+        guildId: "123456789",
+        channelId: "channel123",
+        guildName: "Test Guild",
+        violations: [
+          { guild_id: "123456789", date: new Date(), ticket_counts: {} },
+        ] as TicketViolationRow[],
+        reportLabel: "Weekly",
+        daysInPeriod: 7,
+      })
 
-      // Verify error was logged
       expect(consoleSpy).toHaveBeenCalledWith(
         expect.stringContaining(
           "Channel channel123 not found or not a text channel",
         ),
       )
 
-      // Clean up
       consoleSpy.mockRestore()
-    })
-  })
-
-  describe("createPlayerStatsEmbed", () => {
-    it("should create a properly formatted embed", () => {
-      // Access the private method
-      const createPlayerStatsEmbed = (
-        service as any
-      ).createPlayerStatsEmbed.bind(service)
-
-      // Create test data
-      const playerStats = [
-        {
-          playerName: "Test Player 1",
-          violationCount: 2,
-          averageTickets: 550,
-          totalMissingTickets: 100,
-        },
-        {
-          playerName: "Test Player 2",
-          violationCount: 1,
-          averageTickets: 580,
-          totalMissingTickets: 20,
-        },
-      ]
-
-      // Call the method
-      const embed = createPlayerStatsEmbed(
-        playerStats,
-        "Test Guild",
-        "Weekly",
-        1,
-        1,
-      )
-
-      // Verify the embed was configured correctly
-      expect(embed.setColor).toHaveBeenCalledWith(0x0099ff)
-      expect(embed.setTitle).toHaveBeenCalledWith(
-        "Weekly Player Ticket Statistics - Test Guild",
-      )
-      expect(embed.setDescription).toHaveBeenCalledWith("Page 1 of 1")
-      expect(embed.setTimestamp).toHaveBeenCalled()
-      expect(embed.addFields).toHaveBeenCalledTimes(2)
     })
   })
 

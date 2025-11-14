@@ -78,6 +78,7 @@ pnpm install
     PGUSER=
     PGHOST=
     PGPORT=
+    PGPASSWORD=
     PGDATABASE=
 
     COMLINK_URL=

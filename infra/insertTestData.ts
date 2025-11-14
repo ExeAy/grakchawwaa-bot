@@ -8,13 +8,30 @@ interface TicketViolation {
 
 const insertTestData = async (): Promise<void> => {
   const client = new Client({
-    user: "hfal0t",
-    host: "localhost",
-    database: "grakchawaa",
-    port: 5432,
+    user: process.env.PGUSER,
+    host: process.env.PGHOST,
+    password: process.env.PGPASSWORD,
+    database: process.env.PGDATABASE,
+    port: parseInt(process.env.PGPORT || "5432", 10),
   })
 
   const guildId = "oAhUncGySeGpKznycCMgYQ"
+  const playerIds = [
+    "9i5caIFsRY26XTvKrlzixg",
+    "uINBkfvgQoSt_LOjqgtFRw",
+    "tu5Ez13lSQ6I6iUNKKYEbA",
+    "ZqqN6ov5QWynuJynCMn8KQ",
+    "4L_tpaapT0q1Fvxi3JzyAQ",
+    "0Y2XQa7FrR-6uCY2kUNiWw",
+    "4fpk3Jv2S4-yVX0nBlNDYQ",
+    "m3A-tUP2S6abP1O8YkHtnA",
+    "RE7NTh3cRbC7W1z2efbJiw",
+    "3sB5E2DTQ5G8VeK2Pgu0SA",
+    "xRz9g0I5S2Dk3Lf8PcnjYw",
+    "PvQ7NWf1S1aWQ0p3U6Ztia",
+    "ILBBWTD1TyuCoEte-LMkmQ",
+    "OmcaGcVvRFSMDMGPA9usdg"
+  ]
 
   // Create test data for the last 7 days
   const testData: TicketViolation[] = []
@@ -24,14 +41,14 @@ const insertTestData = async (): Promise<void> => {
     const date = new Date(now)
     date.setDate(date.getDate() - i)
 
-    // Generate random ticket counts for 5 players
-    const ticketCounts = {
-      "9i5caIFsRY26XTvKrlzixg": Math.floor(Math.random() * 600),
-      uINBkfvgQoSt_LOjqgtFRw: Math.floor(Math.random() * 600),
-      tu5Ez13lSQ6I6iUNKKYEbA: Math.floor(Math.random() * 600),
-      ZqqN6ov5QWynuJynCMn8KQ: Math.floor(Math.random() * 600),
-      "4L_tpaapT0q1Fvxi3JzyAQ": Math.floor(Math.random() * 600),
-    }
+    // Generate random ticket counts for all sample players
+    const ticketCounts = playerIds.reduce<Record<string, number>>(
+      (acc, playerId) => {
+        acc[playerId] = Math.floor(Math.random() * 600)
+        return acc
+      },
+      {},
+    )
 
     testData.push({
       guild_id: guildId,

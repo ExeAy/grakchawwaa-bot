@@ -1,6 +1,20 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { AnniversaryMonitorService } from "../anniversary-monitor"
 
+const originalConsoleLog = console.log
+
+beforeAll(() => {
+  console.log = jest.fn()
+})
+
+afterEach(() => {
+  ;(console.log as jest.Mock).mockClear()
+})
+
+afterAll(() => {
+  console.log = originalConsoleLog
+})
+
 // Mock Discord.js
 jest.mock("discord.js", () => ({
   // We still need TextChannel mocked
