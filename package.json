@@ -6,7 +6,7 @@
   "main": "src/index.ts",
   "packageManager": "pnpm@10.10.0",
   "engines": {
-    "node": ">=20.x"
+    "node": "22.x"
   },
   "scripts": {
     "build": "tsc",
