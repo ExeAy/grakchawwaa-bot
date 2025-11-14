@@ -133,6 +133,13 @@ export class TicketMonitorService {
     guildId: string,
     channelId: string,
   ): Promise<void> {
+    if (this.isDevMode) {
+      console.log(
+        "Skipping live ticket collection (DISABLE_LIVE_TICKET_COLLECTION=true)",
+      )
+      return
+    }
+
     try {
       console.log(`Collecting ticket data for guild ${guildId}`)
 

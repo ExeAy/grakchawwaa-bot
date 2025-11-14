@@ -29,6 +29,8 @@ const insertTestData = async (): Promise<void> => {
     "3sB5E2DTQ5G8VeK2Pgu0SA",
     "xRz9g0I5S2Dk3Lf8PcnjYw",
     "PvQ7NWf1S1aWQ0p3U6Ztia",
+    "ILBBWTD1TyuCoEte-LMkmQ",
+    "OmcaGcVvRFSMDMGPA9usdg"
   ]
 
   // Create test data for the last 7 days
