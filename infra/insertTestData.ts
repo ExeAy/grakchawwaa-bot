@@ -8,10 +8,11 @@ interface TicketViolation {
 
 const insertTestData = async (): Promise<void> => {
   const client = new Client({
-    user: "hfal0t",
-    host: "localhost",
-    database: "grakchawaa",
-    port: 5432,
+    user: process.env.PGUSER,
+    host: process.env.PGHOST,
+    password: process.env.PGPASSWORD,
+    database: process.env.PGDATABASE,
+    port: parseInt(process.env.PGPORT || "5432", 10),
   })
 
   const guildId = "oAhUncGySeGpKznycCMgYQ"
