@@ -24,9 +24,6 @@ const initializeHerokuDatabase = async (): Promise<void> => {
       anniversary_channel_id text
     );
 
-    ALTER TABLE IF EXISTS guildMessageChannels
-      ADD COLUMN IF NOT EXISTS ticket_reminder_channel_id text;
-
     -- Create a function to delete old records
     CREATE OR REPLACE FUNCTION delete_old_ticket_violations() RETURNS trigger
     LANGUAGE plpgsql
