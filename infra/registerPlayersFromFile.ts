@@ -7,6 +7,7 @@ import {
   GuildMember,
   User,
 } from "discord.js"
+import { normalizeAllyCode, sanitizeAllyCodeList } from "../src/utils/ally-code"
 import { PlayerPGClient } from "../src/db/player-client"
 
 interface PlayerRegistrationInput {
@@ -73,14 +74,6 @@ const getFilePath = (): string => {
 
   return path.resolve(process.cwd(), "registered_players.txt")
 }
-const normalizeAllyCode = (value: string): string =>
-  value.replace(/\D/g, "")
-
-const sanitizeAltAllyCodes = (codes: string[] | undefined): string[] =>
-  (codes ?? [])
-    .map((code) => normalizeAllyCode(code))
-    .filter((code) => code.length === 9)
-
 const normalizeHandle = (handle: string | undefined): string => {
   if (!handle) {
     return ""
@@ -123,7 +116,7 @@ const parseLine = (
   const playerName = namePart.trim()
   const allyCode = normalizeAllyCode(allyPart)
 
-  if (allyCode.length !== 9) {
+  if (!allyCode) {
     throw new Error(`Line ${index} has an invalid ally code.`)
   }
 
@@ -232,12 +225,13 @@ const ensurePlayerRegistration = async (
       return created ? "created" : "failed"
     }
 
-    const primaryCode = normalizeAllyCode(existingPlayer.allyCode)
+    const primaryCode =
+      normalizeAllyCode(existingPlayer.allyCode) ?? player.allyCode
     if (primaryCode === player.allyCode) {
       return "skipped-primary"
     }
 
-    const altCodes = sanitizeAltAllyCodes(existingPlayer.altAllyCodes)
+    const altCodes = sanitizeAllyCodeList(existingPlayer.altAllyCodes)
 
     if (altCodes.includes(player.allyCode)) {
       return "skipped-alt"

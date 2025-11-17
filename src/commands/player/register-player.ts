@@ -1,20 +1,8 @@
 import { Command } from "@sapphire/framework"
 import { userMention } from "discord.js"
 import { Player } from "../../model/player"
+import { normalizeAllyCode, sanitizeAllyCodeList } from "../../utils/ally-code"
 import { PlayerOperationsCommand } from "./player-operations"
-
-const normalizeAllyCode = (
-  value: string | null | undefined,
-): string | null => {
-  if (!value) return null
-  const normalized = value.replace(/\D/g, "")
-  return normalized.length === 9 ? normalized : null
-}
-
-const sanitizeAllyCodes = (codes: string[] | undefined): string[] =>
-  (codes ?? [])
-    .map((code) => normalizeAllyCode(code))
-    .filter((code): code is string => Boolean(code))
 
 export class RegisterPlayerCommand extends Command {
   private playerOps: PlayerOperationsCommand
@@ -131,7 +119,7 @@ export class RegisterPlayerCommand extends Command {
   }) {
     const primaryAllyCode =
       normalizeAllyCode(existingPlayer.allyCode) ?? allyCode
-    const altAllyCodes = sanitizeAllyCodes(existingPlayer.altAllyCodes)
+    const altAllyCodes = sanitizeAllyCodeList(existingPlayer.altAllyCodes)
 
     if (isAlt) {
       if (primaryAllyCode === allyCode) {
