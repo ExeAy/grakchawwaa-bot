@@ -171,7 +171,7 @@ export class TicketMonitorService {
   ): Promise<void> {
     if (this.isDevMode) {
       console.log(
-        "Skipping live ticket collection (DISABLE_LIVE_TICKET_COLLECTION=true)",
+        "Skipping live ticket collection (in dev mode)",
       )
       return
     }
