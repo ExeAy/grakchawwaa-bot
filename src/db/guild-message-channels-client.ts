@@ -4,15 +4,21 @@ interface TicketChannelRow extends QueryResultRow {
   guild_id: string
   ticket_collection_channel_id: string
   next_ticket_collection_refresh_time: string
+  ticket_reminder_channel_id: string | null
   anniversary_channel_id: string
 }
 
 const QUERIES = {
   REGISTER_TICKET_COLLECTION_CHANNEL: `
-    INSERT INTO guildMessageChannels (guild_id, ticket_collection_channel_id, next_ticket_collection_refresh_time)
-    VALUES ($1, $2, $3)
+    INSERT INTO guildMessageChannels (guild_id, ticket_collection_channel_id, next_ticket_collection_refresh_time, ticket_reminder_channel_id)
+    VALUES ($1, $2, $3, $4)
     ON CONFLICT (guild_id) DO UPDATE 
-    SET ticket_collection_channel_id = $2, next_ticket_collection_refresh_time = $3;
+    SET ticket_collection_channel_id = EXCLUDED.ticket_collection_channel_id,
+        next_ticket_collection_refresh_time = EXCLUDED.next_ticket_collection_refresh_time,
+        ticket_reminder_channel_id = COALESCE(
+          EXCLUDED.ticket_reminder_channel_id,
+          guildMessageChannels.ticket_reminder_channel_id
+        );
   `,
   REGISTER_ANNIVERSARY_CHANNEL: `
     INSERT INTO guildMessageChannels (guild_id, anniversary_channel_id)
@@ -26,12 +32,12 @@ const QUERIES = {
     WHERE guild_id = $1;
   `,
   GET_GUILD_MESSAGE_CHANNELS: `
-    SELECT guild_id, ticket_collection_channel_id, next_ticket_collection_refresh_time, anniversary_channel_id
+    SELECT guild_id, ticket_collection_channel_id, next_ticket_collection_refresh_time, ticket_reminder_channel_id, anniversary_channel_id
     FROM guildMessageChannels
     WHERE guild_id = $1;
   `,
   GET_ALL_GUILDS: `
-    SELECT guild_id, ticket_collection_channel_id, next_ticket_collection_refresh_time, anniversary_channel_id
+    SELECT guild_id, ticket_collection_channel_id, next_ticket_collection_refresh_time, ticket_reminder_channel_id, anniversary_channel_id
     FROM guildMessageChannels;
   `,
   UNREGISTER_CHANNEL: `
@@ -87,6 +93,7 @@ export class GuildMessageChannelsClient {
     guildId: string,
     channelId: string,
     nextRefreshTime: string,
+    reminderChannelId?: string | null,
   ): Promise<boolean> {
     if (!guildId || !channelId || !nextRefreshTime) {
       console.error("Invalid guild, channel ID, or refresh time")
@@ -98,6 +105,7 @@ export class GuildMessageChannelsClient {
         guildId,
         channelId,
         nextRefreshTime,
+        reminderChannelId ?? null,
       ])
       return true
     } catch (error) {

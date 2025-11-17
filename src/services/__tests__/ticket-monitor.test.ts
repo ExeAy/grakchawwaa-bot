@@ -52,6 +52,12 @@ jest.mock("@sapphire/pieces", () => ({
     cachedComlinkClient: {
       getGuild: jest.fn(),
     },
+    playerClient: {
+      findDiscordIdByAllyCode: jest.fn(),
+    },
+    comlinkClient: {
+      getPlayer: jest.fn(),
+    },
   },
 }))
 
@@ -74,6 +80,7 @@ jest.mock("discord.js", () => ({
     setFooter: mockSetFooter,
   })),
   TextChannel: jest.fn(),
+  userMention: jest.fn((id: string) => `<@${id}>`),
 }))
 
 // Mock ViolationSummaryService
@@ -268,6 +275,60 @@ describe("TicketMonitorService", () => {
       expect(console.log).toHaveBeenCalledWith(
         expect.stringContaining("No ticket violations found"),
       )
+    })
+  })
+
+  describe("ticket reminders", () => {
+    it("sends reminder once and tags registered players", async () => {
+      const now = Date.now()
+      Date.now = jest.fn(() => now)
+
+      const refreshTimestamp = Math.floor(
+        (now + 30 * 60 * 1000) / 1000,
+      ).toString()
+
+      mockContainer.ticketChannelClient.getAllGuilds.mockResolvedValue([
+        {
+          guild_id: "guild123",
+          ticket_collection_channel_id: "channel456",
+          ticket_reminder_channel_id: "reminder789",
+          next_ticket_collection_refresh_time: refreshTimestamp,
+        },
+      ])
+
+      mockContainer.cachedComlinkClient.getGuild.mockResolvedValue({
+        guild: {
+          member: [
+            createMember("player1", "Alpha", 500),
+            createMember("player2", "Beta", 450),
+          ],
+          profile: { name: "Test Guild" },
+          nextChallengesRefresh: (parseInt(refreshTimestamp, 10) + 86400).toString(),
+        },
+      } as unknown as ComlinkGuildData)
+
+      mockContainer.comlinkClient.getPlayer
+        .mockResolvedValueOnce({ allyCode: 123456789 })
+        .mockResolvedValueOnce({ allyCode: 987654321 })
+
+      mockContainer.playerClient.findDiscordIdByAllyCode
+        .mockResolvedValueOnce("discord123")
+        .mockResolvedValueOnce(null)
+
+      await (service as any).checkGuildResetTimes()
+
+      expect(mockClient.channels.fetch).toHaveBeenCalledWith(
+        "reminder789",
+      )
+      expect(mockChannel.send).toHaveBeenCalledTimes(1)
+
+      const reminderMessage = mockChannel.send.mock.calls[0][0].content
+      expect(reminderMessage).toContain("<@discord123>")
+      expect(reminderMessage).toContain("Beta")
+
+      ;(mockChannel.send as jest.Mock).mockClear()
+      await (service as any).checkGuildResetTimes()
+      expect(mockChannel.send).not.toHaveBeenCalled()
     })
   })
 

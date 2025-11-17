@@ -1,7 +1,8 @@
 import { container } from "@sapphire/pieces"
 import { ComlinkGuildData, ComlinkGuildMember } from "@swgoh-utils/comlink"
-import { EmbedBuilder, TextChannel } from "discord.js"
+import { EmbedBuilder, TextChannel, userMention } from "discord.js"
 import { DiscordBotClient } from "../discord-bot-client"
+import { normalizeAllyCode } from "../utils/ally-code"
 import { ViolationSummaryService } from "./violation-summary"
 
 interface TicketViolator {
@@ -15,13 +16,17 @@ export class TicketMonitorService {
   private summaryService: ViolationSummaryService
   private checkInterval: NodeJS.Timeout | null = null
   private processedRefreshTimes: Set<string> = new Set() // Track processed refresh times
+  private reminderSentTimes: Set<string> = new Set()
   private static TICKET_THRESHOLD = 600 // Ticket threshold for violation
   private static CHECK_FREQUENCY = 60 * 1000 // Check every minute
   private static CHECK_BEFORE_RESET = 2 * 60 * 1000 // 2 minutes before reset
   private static REFRESH_UPDATE_DELAY = 5 * 60 * 1000 // 5 minutes wait for refresh update
+  private static REMINDER_BEFORE_RESET = 60 * 60 * 1000 // 1 hour before reset
   private isDevMode: boolean
   private static EMBED_FIELD_LIMIT = 25
   private static EMBEDS_PER_MESSAGE = 10
+  private playerAllyCodeCache: Map<string, string | null> = new Map()
+  private allyCodeDiscordCache: Map<string, string | null> = new Map()
 
   constructor(
     client: DiscordBotClient,
@@ -56,6 +61,9 @@ export class TicketMonitorService {
     }
     // Clear processed refresh times when stopping
     this.processedRefreshTimes.clear()
+    this.reminderSentTimes.clear()
+    this.playerAllyCodeCache.clear()
+    this.allyCodeDiscordCache.clear()
   }
 
   private async checkGuildResetTimes(): Promise<void> {
@@ -76,6 +84,17 @@ export class TicketMonitorService {
             `Development mode: Force checking tickets for guild ${guild.guild_id}`,
           )
 
+          if (guild.ticket_reminder_channel_id) {
+            const reminderSent = await this.sendTicketReminder(
+              guild.guild_id,
+              guild.ticket_reminder_channel_id,
+            )
+
+            if (reminderSent) {
+              this.reminderSentTimes.add(refreshTimeKey)
+            }
+          }
+
           // Process ticket data collection
           await this.collectTicketData(
             guild.guild_id,
@@ -95,6 +114,22 @@ export class TicketMonitorService {
         // Regular production logic below
         // Check if we're within 2 minutes of the reset for ticket collection
         const timeUntilReset = refreshTime - now
+        if (
+          guild.ticket_reminder_channel_id &&
+          timeUntilReset > 0 &&
+          timeUntilReset <= TicketMonitorService.REMINDER_BEFORE_RESET &&
+          !this.reminderSentTimes.has(refreshTimeKey)
+        ) {
+          const reminderSent = await this.sendTicketReminder(
+            guild.guild_id,
+            guild.ticket_reminder_channel_id,
+          )
+
+          if (reminderSent) {
+            this.reminderSentTimes.add(refreshTimeKey)
+          }
+        }
+
         if (
           timeUntilReset > 0 &&
           timeUntilReset <= TicketMonitorService.CHECK_BEFORE_RESET &&
@@ -122,6 +157,7 @@ export class TicketMonitorService {
           )
 
           this.processedRefreshTimes.delete(refreshTimeKey)
+          this.reminderSentTimes.delete(refreshTimeKey)
         }
       }
     } catch (error) {
@@ -135,7 +171,7 @@ export class TicketMonitorService {
   ): Promise<void> {
     if (this.isDevMode) {
       console.log(
-        "Skipping live ticket collection (DISABLE_LIVE_TICKET_COLLECTION=true)",
+        "Skipping live ticket collection (in dev mode)",
       )
       return
     }
@@ -273,6 +309,141 @@ export class TicketMonitorService {
     } catch (error) {
       console.error(
         `Error updating next refresh time for guild ${guildId}:`,
+        error,
+      )
+    }
+  }
+
+  private async sendTicketReminder(
+    guildId: string,
+    channelId: string,
+  ): Promise<boolean> {
+    if (!channelId) {
+      return false
+    }
+
+    try {
+      const guildData = await this.fetchGuildData(guildId)
+      if (!guildData?.guild?.member?.length) {
+        return false
+      }
+
+      const violators = this.findTicketViolators(guildData.guild.member)
+      if (!violators.length) {
+        console.log(`No ticket reminder needed for guild ${guildId}`)
+        return true
+      }
+
+      const lines = await this.buildReminderLines(violators)
+      if (!lines.length) {
+        return true
+      }
+
+      await this.sendReminderMessage(
+        channelId,
+        guildData.guild.profile.name,
+        lines,
+      )
+      return true
+    } catch (error) {
+      console.error(`Error sending ticket reminder for guild ${guildId}:`, error)
+      return false
+    }
+  }
+
+  private async buildReminderLines(
+    violators: TicketViolator[],
+  ): Promise<string[]> {
+    const lines: string[] = []
+
+    for (const [index, violator] of violators.entries()) {
+      const label = await this.resolveReminderLabel(violator)
+      lines.push(`${index + 1}. ${label} (${violator.tickets}/600)`)
+    }
+
+    return lines
+  }
+
+  private async resolveReminderLabel(
+    violator: TicketViolator,
+  ): Promise<string> {
+    const allyCode = await this.getAllyCodeForPlayer(violator.id)
+    if (!allyCode) {
+      return violator.name
+    }
+
+    const discordId = await this.findDiscordIdForAllyCode(allyCode)
+    if (!discordId) {
+      return violator.name
+    }
+
+    return userMention(discordId)
+  }
+
+  private async getAllyCodeForPlayer(
+    playerId: string,
+  ): Promise<string | null> {
+    if (this.playerAllyCodeCache.has(playerId)) {
+      return this.playerAllyCodeCache.get(playerId) ?? null
+    }
+
+    try {
+      const playerData = await container.comlinkClient.getPlayer(
+        undefined,
+        playerId,
+      )
+      const normalized = normalizeAllyCode(playerData?.allyCode)
+      this.playerAllyCodeCache.set(playerId, normalized)
+      return normalized
+    } catch (error) {
+      console.error(`Error fetching ally code for player ${playerId}:`, error)
+      this.playerAllyCodeCache.set(playerId, null)
+      return null
+    }
+  }
+
+  private async findDiscordIdForAllyCode(
+    allyCode: string,
+  ): Promise<string | null> {
+    if (this.allyCodeDiscordCache.has(allyCode)) {
+      return this.allyCodeDiscordCache.get(allyCode) ?? null
+    }
+
+    const discordId =
+      await container.playerClient.findDiscordIdByAllyCode(allyCode)
+    this.allyCodeDiscordCache.set(allyCode, discordId)
+    return discordId
+  }
+
+  private async sendReminderMessage(
+    channelId: string,
+    guildName: string,
+    lines: string[],
+  ): Promise<void> {
+    if (!lines.length) {
+      return
+    }
+
+    try {
+      const channel = (await this.client.channels.fetch(
+        channelId,
+      )) as TextChannel
+
+      if (!channel || !channel.isTextBased()) {
+        console.error(`Reminder channel ${channelId} is invalid`)
+        return
+      }
+
+      const content = [
+        `⏰ Ticket reminder for ${guildName} (1 hour before reset)`,
+        "Players below 600 tickets:",
+        ...lines,
+      ].join("\n")
+
+      await channel.send({ content })
+    } catch (error) {
+      console.error(
+        `Error sending reminder message to channel ${channelId}:`,
         error,
       )
     }

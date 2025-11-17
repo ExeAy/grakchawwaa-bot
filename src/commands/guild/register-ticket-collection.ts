@@ -60,6 +60,12 @@ export class RegisterTicketCollectionCommand extends Command {
               .setName("ally-code")
               .setDescription("Ally code of a guild member (optional)")
               .setRequired(false),
+          )
+          .addChannelOption((option) =>
+            option
+              .setName("ticket-reminder-channel")
+              .setDescription("Channel used for ticket reminders (optional)")
+              .setRequired(false),
           ),
       { idHints: ["1370692224269942865"] },
     )
@@ -73,6 +79,11 @@ export class RegisterTicketCollectionCommand extends Command {
       const channel = this.validateChannel(interaction)
       if (!channel.success || !channel.value) {
         return await interaction.reply(channel.response)
+      }
+
+      const reminderChannel = this.resolveReminderChannel(interaction)
+      if (!reminderChannel.success) {
+        return await interaction.reply(reminderChannel.response)
       }
 
       const allyCodeResponse = await this.resolveAllyCode(interaction)
@@ -99,6 +110,7 @@ export class RegisterTicketCollectionCommand extends Command {
       const registration = await this.registerGuildChannel(
         guildData.value,
         channel.value.id,
+        reminderChannel.value?.id ?? null,
       )
       if (!registration.success) {
         return await interaction.editReply(registration.response)
@@ -107,6 +119,7 @@ export class RegisterTicketCollectionCommand extends Command {
       return await interaction.editReply({
         content: this.formatSuccessMessage(
           channel.value.id,
+          reminderChannel.value?.id ?? null,
           guildData.value.guildName,
           guildData.value.nextRefreshTime,
         ),
@@ -146,6 +159,38 @@ export class RegisterTicketCollectionCommand extends Command {
       success: true,
       response: { content: "" },
       value: channel,
+    }
+  }
+
+  private resolveReminderChannel(
+    interaction: Command.ChatInputCommandInteraction,
+  ): CommandResponse<TextChannel | null> {
+    const reminderChannel = interaction.options.getChannel(
+      "ticket-reminder-channel",
+    )
+
+    if (!reminderChannel) {
+      return {
+        success: true,
+        response: { content: "" },
+        value: null,
+      }
+    }
+
+    if (!(reminderChannel instanceof TextChannel)) {
+      return {
+        success: false,
+        response: {
+          content: "Please provide a valid text channel for ticket reminders.",
+          ephemeral: true,
+        },
+      }
+    }
+
+    return {
+      success: true,
+      response: { content: "" },
+      value: reminderChannel,
     }
   }
 
@@ -244,12 +289,14 @@ export class RegisterTicketCollectionCommand extends Command {
   private async registerGuildChannel(
     guildData: GuildRegistrationData,
     channelId: string,
+    reminderChannelId: string | null,
   ): Promise<CommandResponse> {
     const success =
       await container.ticketChannelClient.registerTicketCollectionChannel(
         guildData.guildId,
         channelId,
         guildData.nextRefreshTime,
+        reminderChannelId ?? null,
       )
 
     if (!success) {
@@ -267,14 +314,18 @@ export class RegisterTicketCollectionCommand extends Command {
 
   private formatSuccessMessage(
     channelId: string,
+    reminderChannelId: string | null,
     guildName: string,
     nextRefreshTime: string,
   ): string {
     const refreshDate = new Date(parseInt(nextRefreshTime) * 1000)
     const refreshTimeFormatted = refreshDate.toLocaleString()
+    const reminderLine = reminderChannelId
+      ? `\nTicket reminder channel: ${channelMention(reminderChannelId)}`
+      : ""
 
     return `Successfully registered ${channelMention(
       channelId,
-    )} for ticket collection monitoring for guild: ${guildName}\nNext ticket reset time: ${refreshTimeFormatted}`
+    )} for ticket collection monitoring for guild: ${guildName}\nNext ticket reset time: ${refreshTimeFormatted}${reminderLine}`
   }
 }

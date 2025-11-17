@@ -40,6 +40,7 @@ const initializeDatabase = async (): Promise<void> => {
       guild_id text NOT NULL PRIMARY KEY,
       ticket_collection_channel_id text,
       next_ticket_collection_refresh_time text,
+      ticket_reminder_channel_id text,
       anniversary_channel_id text
     );
   `

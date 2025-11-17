@@ -1,5 +1,7 @@
 import { Command } from "@sapphire/framework"
 import { userMention } from "discord.js"
+import { Player } from "../../model/player"
+import { normalizeAllyCode, sanitizeAllyCodeList } from "../../utils/ally-code"
 import { PlayerOperationsCommand } from "./player-operations"
 
 export class RegisterPlayerCommand extends Command {
@@ -23,6 +25,12 @@ export class RegisterPlayerCommand extends Command {
               .setName("ally-code")
               .setDescription("Ally code to register")
               .setRequired(true),
+          )
+          .addBooleanOption((option) =>
+            option
+              .setName("is-alt")
+              .setDescription("Mark the ally code as an alternate")
+              .setRequired(false),
           ),
       { idHints: ["1328102310261297253"] },
     )
@@ -31,15 +39,57 @@ export class RegisterPlayerCommand extends Command {
   public override async chatInputRun(
     interaction: Command.ChatInputCommandInteraction,
   ) {
-    const allyCode = interaction.options
-      .getString("ally-code")
-      ?.replace(/-/g, "")
+    const allyCodeInput = interaction.options.getString("ally-code")
+    const normalizedAllyCode = normalizeAllyCode(allyCodeInput)
+    const isAlt = interaction.options.getBoolean("is-alt") ?? false
+    const userTag = userMention(interaction.user.id)
 
-    console.log("Received register player command", allyCode)
+    if (!normalizedAllyCode) {
+      return interaction.reply({
+        content: "Please provide a valid ally code (123-456-789).",
+      })
+    }
 
+    console.log(
+      "Received register player command",
+      normalizedAllyCode,
+      "isAlt:",
+      isAlt,
+    )
+
+    const existingPlayer = await this.playerOps.getPlayer(
+      interaction.user.id,
+    )
+
+    if (!existingPlayer) {
+      return this.registerNewPlayer({
+        interaction,
+        allyCode: normalizedAllyCode,
+        userTag,
+      })
+    }
+
+    return this.updateExistingPlayer({
+      interaction,
+      allyCode: normalizedAllyCode,
+      isAlt,
+      userTag,
+      existingPlayer,
+    })
+  }
+
+  private async registerNewPlayer({
+    interaction,
+    allyCode,
+    userTag,
+  }: {
+    interaction: Command.ChatInputCommandInteraction
+    allyCode: string
+    userTag: string
+  }) {
     const saveResult = await this.playerOps.addUser({
       discordUser: interaction.user,
-      allyCode: allyCode!,
+      allyCode,
       altAllyCodes: [],
     })
 
@@ -49,10 +99,78 @@ export class RegisterPlayerCommand extends Command {
       })
     }
 
-    const userCallerToMention = userMention(interaction.user.id)
+    return interaction.reply({
+      content: `Registered player with ally code: ${allyCode} for ${userTag}.`,
+    })
+  }
+
+  private async updateExistingPlayer({
+    interaction,
+    allyCode,
+    isAlt,
+    userTag,
+    existingPlayer,
+  }: {
+    interaction: Command.ChatInputCommandInteraction
+    allyCode: string
+    isAlt: boolean
+    userTag: string
+    existingPlayer: Player
+  }) {
+    const primaryAllyCode =
+      normalizeAllyCode(existingPlayer.allyCode) ?? allyCode
+    const altAllyCodes = sanitizeAllyCodeList(existingPlayer.altAllyCodes)
+
+    if (isAlt) {
+      if (primaryAllyCode === allyCode) {
+        return interaction.reply({
+          content: "This ally code is already the primary one.",
+        })
+      }
+
+      if (altAllyCodes.includes(allyCode)) {
+        return interaction.reply({
+          content: "This ally code is already registered as an alternate.",
+        })
+      }
+
+      const saveResult = await this.playerOps.addUser({
+        discordUser: interaction.user,
+        allyCode: primaryAllyCode,
+        altAllyCodes: [...altAllyCodes, allyCode],
+      })
+
+      if (!saveResult) {
+        return interaction.reply({
+          content: "Failed to save player",
+        })
+      }
+
+      return interaction.reply({
+        content: `Added alternate ally code ${allyCode} for ${userTag}.`,
+      })
+    }
+
+    if (primaryAllyCode === allyCode) {
+      return interaction.reply({
+        content: "This ally code is already registered as primary.",
+      })
+    }
+
+    const saveResult = await this.playerOps.addUser({
+      discordUser: interaction.user,
+      allyCode,
+      altAllyCodes,
+    })
+
+    if (!saveResult) {
+      return interaction.reply({
+        content: "Failed to save player",
+      })
+    }
 
     return interaction.reply({
-      content: `Registered player with ally code: ${allyCode} for ${userCallerToMention}`,
+      content: `Updated primary ally code to ${allyCode} for ${userTag}.`,
     })
   }
 }

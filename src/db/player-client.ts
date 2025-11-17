@@ -1,5 +1,6 @@
 import { Pool, QueryResult, QueryResultRow } from "pg"
 import { DiscordPlayer, Player } from "../model/player"
+import { normalizeAllyCode } from "../utils/ally-code"
 
 interface PlayerRow extends QueryResultRow {
   discord_id: string
@@ -22,6 +23,11 @@ const QUERIES = {
   REMOVE_PLAYER: `
     DELETE FROM players
     WHERE discord_id = $1;
+  `,
+  FIND_DISCORD_BY_ALLY_CODE: `
+    SELECT discord_id
+    FROM players
+    WHERE ally_code = $1 OR $1 = ANY(alt_ally_codes);
   `,
 } as const
 
@@ -167,6 +173,26 @@ export class PlayerPGClient {
     } catch (error) {
       console.error("Error removing player:", error)
       return false
+    }
+  }
+
+  public async findDiscordIdByAllyCode(
+    allyCode: string,
+  ): Promise<string | null> {
+    const normalized = normalizeAllyCode(allyCode)
+    if (!normalized) {
+      return null
+    }
+
+    try {
+      const result = await this.query<{ discord_id: string }>(
+        QUERIES.FIND_DISCORD_BY_ALLY_CODE,
+        [normalized],
+      )
+      return result.rows[0]?.discord_id ?? null
+    } catch (error) {
+      console.error("Error finding discord id by ally code:", error)
+      return null
     }
   }
 }
