@@ -1,6 +1,7 @@
 import { Command } from "@sapphire/framework"
 import { userMention } from "discord.js"
 import { PlayerOperationsCommand } from "./player-operations"
+import { formatAllyCode } from "../../utils/ally-code"
 
 export class IdentifyCommand extends Command {
   private playerOps: PlayerOperationsCommand
@@ -35,8 +36,21 @@ export class IdentifyCommand extends Command {
     }
 
     const userCallerToMention = userMention(interaction.user.id)
+    const primaryAllyCode = formatAllyCode(user.allyCode)
+    const altAllyCodes = (user.altAllyCodes ?? [])
+      .filter((code) => Boolean(code?.trim()))
+      .map((code) => formatAllyCode(code))
+
+    const altSummary =
+      altAllyCodes.length > 0 ? altAllyCodes.join(", ") : "None registered"
+
     return interaction.reply({
-      content: `Identified player with ally code: ${user.allyCode} for ${userCallerToMention}`,
+      content: [
+        `Identified player for ${userCallerToMention}`,
+        `Primary ally code: ${primaryAllyCode}`,
+        `Alt ally codes: ${altSummary}`,
+      ].join("\n"),
     })
   }
+
 }
