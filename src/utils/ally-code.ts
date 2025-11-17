@@ -20,4 +20,11 @@ export const sanitizeAllyCodeList = (
     .map((code) => normalizeAllyCode(code))
     .filter((code): code is string => Boolean(code))
 
+export const formatAllyCode = (
+  value: string | number | null | undefined,
+): string => {
+  const normalized = normalizeAllyCode(value) ?? "000000000"
+  return `${normalized.slice(0, 3)}-${normalized.slice(3, 6)}-${normalized.slice(6)}`
+}
+
 

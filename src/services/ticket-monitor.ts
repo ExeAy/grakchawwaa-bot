@@ -84,13 +84,15 @@ export class TicketMonitorService {
             `Development mode: Force checking tickets for guild ${guild.guild_id}`,
           )
 
-          const reminderSent = await this.sendTicketReminder(
-            guild.guild_id,
-            guild.ticket_reminder_channel_id!,
-          )
+          if (guild.ticket_reminder_channel_id) {
+            const reminderSent = await this.sendTicketReminder(
+              guild.guild_id,
+              guild.ticket_reminder_channel_id,
+            )
 
-          if (reminderSent) {
-            this.reminderSentTimes.add(refreshTimeKey)
+            if (reminderSent) {
+              this.reminderSentTimes.add(refreshTimeKey)
+            }
           }
 
           // Process ticket data collection
@@ -316,6 +318,10 @@ export class TicketMonitorService {
     guildId: string,
     channelId: string,
   ): Promise<boolean> {
+    if (!channelId) {
+      return false
+    }
+
     try {
       const guildData = await this.fetchGuildData(guildId)
       if (!guildData?.guild?.member?.length) {
