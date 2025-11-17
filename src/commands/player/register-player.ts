@@ -1,5 +1,5 @@
 import { Command } from "@sapphire/framework"
-import { userMention } from "discord.js"
+import { User, userMention } from "discord.js"
 import { Player } from "../../model/player"
 import { normalizeAllyCode, sanitizeAllyCodeList } from "../../utils/ally-code"
 import { PlayerOperationsCommand } from "./player-operations"
@@ -31,6 +31,12 @@ export class RegisterPlayerCommand extends Command {
               .setName("is-alt")
               .setDescription("Mark the ally code as an alternate")
               .setRequired(false),
+          )
+          .addUserOption((option) =>
+            option
+              .setName("discord-user")
+              .setDescription("Discord user to register")
+              .setRequired(false),
           ),
       { idHints: ["1328102310261297253"] },
     )
@@ -42,7 +48,13 @@ export class RegisterPlayerCommand extends Command {
     const allyCodeInput = interaction.options.getString("ally-code")
     const normalizedAllyCode = normalizeAllyCode(allyCodeInput)
     const isAlt = interaction.options.getBoolean("is-alt") ?? false
-    const userTag = userMention(interaction.user.id)
+    const targetUser =
+      interaction.options.getUser("discord-user") ?? interaction.user
+    const targetTag = userMention(targetUser.id)
+    const requestedBy =
+      targetUser.id === interaction.user.id
+        ? null
+        : userMention(interaction.user.id)
 
     if (!normalizedAllyCode) {
       return interaction.reply({
@@ -57,15 +69,15 @@ export class RegisterPlayerCommand extends Command {
       isAlt,
     )
 
-    const existingPlayer = await this.playerOps.getPlayer(
-      interaction.user.id,
-    )
+    const existingPlayer = await this.playerOps.getPlayer(targetUser.id)
 
     if (!existingPlayer) {
       return this.registerNewPlayer({
         interaction,
         allyCode: normalizedAllyCode,
-        userTag,
+        targetUser,
+        targetTag,
+        requestedBy,
       })
     }
 
@@ -73,22 +85,28 @@ export class RegisterPlayerCommand extends Command {
       interaction,
       allyCode: normalizedAllyCode,
       isAlt,
-      userTag,
+      targetTag,
+      requestedBy,
       existingPlayer,
+      targetUser,
     })
   }
 
   private async registerNewPlayer({
     interaction,
     allyCode,
-    userTag,
+    targetUser,
+    targetTag,
+    requestedBy,
   }: {
     interaction: Command.ChatInputCommandInteraction
     allyCode: string
-    userTag: string
+    targetUser: User
+    targetTag: string
+    requestedBy: string | null
   }) {
     const saveResult = await this.playerOps.addUser({
-      discordUser: interaction.user,
+      discordUser: targetUser,
       allyCode,
       altAllyCodes: [],
     })
@@ -99,8 +117,15 @@ export class RegisterPlayerCommand extends Command {
       })
     }
 
+    const baseMessage =
+      `Registered player with ally code: ${allyCode} ` +
+      `for ${targetTag}`
+    const replyMessage = `${baseMessage}${this.formatRequesterNote(
+      requestedBy,
+    )}.`
+
     return interaction.reply({
-      content: `Registered player with ally code: ${allyCode} for ${userTag}.`,
+      content: replyMessage,
     })
   }
 
@@ -108,18 +133,23 @@ export class RegisterPlayerCommand extends Command {
     interaction,
     allyCode,
     isAlt,
-    userTag,
+    targetTag,
+    requestedBy,
     existingPlayer,
+    targetUser,
   }: {
     interaction: Command.ChatInputCommandInteraction
     allyCode: string
     isAlt: boolean
-    userTag: string
+    targetTag: string
+    requestedBy: string | null
     existingPlayer: Player
+    targetUser: User
   }) {
     const primaryAllyCode =
       normalizeAllyCode(existingPlayer.allyCode) ?? allyCode
     const altAllyCodes = sanitizeAllyCodeList(existingPlayer.altAllyCodes)
+    const requesterNote = this.formatRequesterNote(requestedBy)
 
     if (isAlt) {
       if (primaryAllyCode === allyCode) {
@@ -135,7 +165,7 @@ export class RegisterPlayerCommand extends Command {
       }
 
       const saveResult = await this.playerOps.addUser({
-        discordUser: interaction.user,
+        discordUser: targetUser,
         allyCode: primaryAllyCode,
         altAllyCodes: [...altAllyCodes, allyCode],
       })
@@ -147,7 +177,9 @@ export class RegisterPlayerCommand extends Command {
       }
 
       return interaction.reply({
-        content: `Added alternate ally code ${allyCode} for ${userTag}.`,
+        content:
+          `Added alternate ally code ${allyCode} for ${targetTag}` +
+          `${requesterNote}.`,
       })
     }
 
@@ -158,7 +190,7 @@ export class RegisterPlayerCommand extends Command {
     }
 
     const saveResult = await this.playerOps.addUser({
-      discordUser: interaction.user,
+      discordUser: targetUser,
       allyCode,
       altAllyCodes,
     })
@@ -170,7 +202,17 @@ export class RegisterPlayerCommand extends Command {
     }
 
     return interaction.reply({
-      content: `Updated primary ally code to ${allyCode} for ${userTag}.`,
+      content:
+        `Updated primary ally code to ${allyCode} for ${targetTag}` +
+        `${requesterNote}.`,
     })
+  }
+
+  private formatRequesterNote(requestedBy: string | null): string {
+    if (!requestedBy) {
+      return ""
+    }
+
+    return ` (requested by ${requestedBy})`
   }
 }
