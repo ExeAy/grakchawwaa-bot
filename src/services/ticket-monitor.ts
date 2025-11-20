@@ -192,15 +192,20 @@ export class TicketMonitorService {
   private async fetchGuildData(
     guildId: string,
   ): Promise<ComlinkGuildData | null> {
-    const guildData = await container.cachedComlinkClient.getGuild(
-      guildId,
-      true,
-    )
-    if (!guildData?.guild?.member) {
-      console.error(`No member data found for guild ${guildId}`)
+    try {
+      const guildData = await container.cachedComlinkClient.getGuild(
+        guildId,
+        true,
+      )
+      if (!guildData?.guild?.member) {
+        console.error(`No member data found for guild ${guildId}`)
+        return null
+      }
+      return guildData
+    } catch (error) {
+      console.error(`Error fetching guild data for ${guildId}:`, error)
       return null
     }
-    return guildData
   }
 
   private findTicketViolators(members: ComlinkGuildMember[]): TicketViolator[] {
