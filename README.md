@@ -95,3 +95,15 @@ The bot uses PostgreSQL for data storage. Database tables are created with:
 ```bash
 npx ts-node infra/setupLocalDB.ts
 ```
+
+## Deployment
+
+This bot runs as a **worker dyno only** on Heroku (not a web dyno). 
+
+**⚠️ IMPORTANT:** After deploying, scale the web dyno to 0 to prevent health check failures:
+
+```bash
+pnpm heroku-scale-web-zero
+```
+
+For complete deployment instructions, troubleshooting, and verification steps, see [DEPLOYMENT.md](./DEPLOYMENT.md).
