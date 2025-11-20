@@ -12,7 +12,7 @@ setupComlinkClient()
 
 const client = new DiscordBotClient()
 const summaryService = new ViolationSummaryService(client)
-client.on("ready", () => {
+client.on("clientReady", () => {
   console.log(`Logged in as ${client.user?.tag}!`)
 
   // Start the ticket monitoring service
