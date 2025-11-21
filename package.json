@@ -11,9 +11,11 @@
   "scripts": {
     "build": "tsc",
     "start": "node dist/index.js",
-    "setupLocalDB": "dotenvx run -f .env.dev -- ts-node infra/setupLocalDB.ts",
     "setupHerokuDB": "dotenvx run -f .env.prod -- ts-node infra/setupHerokuDB.ts",
-    "insertTestData": "dotenvx run -f .env.dev -- ts-node infra/insertTestData.ts",
+    "docker:up": "docker-compose up -d",
+    "docker:down": "docker-compose down",
+    "docker:setup": "docker-compose up -d && ts-node infra/setupDockerDB.ts",
+    "docker:reset": "docker-compose down -v && docker-compose up -d && ts-node infra/setupDockerDB.ts",
     "dev": "dotenvx run -f .env.dev -- ts-node src/index.ts",
     "prod": "dotenvx run -f .env.prod -- ts-node src/index.ts",
     "reset-commands-dev": "dotenvx run -f .env.dev -- ts-node infra/reset-commands.ts",
