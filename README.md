@@ -45,7 +45,7 @@ The bot is built using TypeScript and the Sapphire Discord.js framework.
 
 - Node.js (v16 or higher)
 - PNPM package manager
-- PostgreSQL database
+- Docker and Docker Compose (for local database setup)
 
 ### Setup
 
@@ -86,15 +86,44 @@ pnpm install
     COMLINK_SECRET_KEY=""
   ```
 
-You will need to setup your own Postgres database (for development), register your own discord bot (for manual testing) and setup you own [swgoh comlink instance](https://github.com/swgoh-utils/swgoh-comlink). From those you can fille in the values missing above.
+You will need to register your own discord bot (for manual testing) and setup you own [swgoh comlink instance](https://github.com/swgoh-utils/swgoh-comlink). From those you can fill in the values missing above.
 
-### Database
+### Database Setup
 
-The bot uses PostgreSQL for data storage. Database tables are created with:
+The easiest way to set up a local PostgreSQL database is using Docker:
 
 ```bash
-npx ts-node infra/setupLocalDB.ts
+pnpm docker:setup
 ```
+
+This command will:
+- Start a PostgreSQL container with pre-configured credentials
+- Wait for the database to be ready
+- Create all required tables
+- Insert test data
+
+**Docker Database Credentials:**
+- Host: `localhost`
+- Port: `5432`
+- User: `grakchawwaa`
+- Password: `dev_password`
+- Database: `grakchawwaa_dev`
+
+To use the Docker database in your `.env.dev` file:
+
+```
+PGUSER=grakchawwaa
+PGHOST=localhost
+PGPORT=5432
+PGPASSWORD=dev_password
+PGDATABASE=grakchawwaa_dev
+```
+
+**Docker Commands:**
+- `pnpm docker:up` - Start the database container
+- `pnpm docker:down` - Stop the database container
+- `pnpm docker:setup` - Start database and run setup scripts
+- `pnpm docker:reset` - Reset database (removes all data) and re-run setup
 
 ## Deployment
 
