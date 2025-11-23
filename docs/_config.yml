@@ -1,5 +1,5 @@
 title: grakchawwaa-bot
-description: Discord bot for Star Wars: Galaxy of Heroes guild management
+description: "Discord bot for Star Wars: Galaxy of Heroes guild management"
 theme: jekyll-theme-minimal
 plugins:
   - jekyll-relative-links
