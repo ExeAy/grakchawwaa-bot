@@ -136,3 +136,12 @@ pnpm heroku-scale-web-zero
 ```
 
 For complete deployment instructions, troubleshooting, and verification steps, see [DEPLOYMENT.md](./DEPLOYMENT.md).
+
+## Legal Documents
+
+The Terms of Service and Privacy Policy are published via GitHub Pages. After setting up GitHub Pages (see [docs/README.md](./docs/README.md)), they will be available at:
+
+- Terms of Service: `https://[your-username].github.io/grakchawwaa-bot/terms-of-service.html`
+- Privacy Policy: `https://[your-username].github.io/grakchawwaa-bot/privacy-policy.html`
+
+To update these documents, simply edit the corresponding markdown files in the `docs/` directory and push to the repository.
