@@ -44,7 +44,11 @@ When using the Bot, you agree to:
 
 ## 5. Data Collection and Privacy
 
-The Bot collects and processes personal information as described in our [Privacy Policy](./privacy-policy.html). By using the Bot, you consent to the collection and use of your information in accordance with our Privacy Policy.
+The Bot collects and processes personal information as described in our [Privacy Policy](./privacy-policy.html). By using the Bot, you provide explicit consent to the collection and use of your information in accordance with our Privacy Policy.
+
+**Consent and Withdrawal:** Your consent is obtained when you register with the Bot and use its services. You may withdraw your consent at any time by unregistering your account or contacting us. Withdrawal of consent does not affect the lawfulness of processing before withdrawal, but will result in termination of service access.
+
+**Data Controller:** The Bot developer (ExeAy) acts as the data controller for all personal data collected through the Bot. We process data on our own behalf to provide the Bot's services, not as a processor on behalf of third parties. For detailed information about data processing, see our [Privacy Policy](./privacy-policy.html).
 
 ### 5.1 Discord Permissions
 
@@ -82,6 +86,8 @@ The Bot is provided "as is" and "as available." We do not guarantee that the Bot
 TO THE MAXIMUM EXTENT PERMITTED BY LAW, THE BOT DEVELOPER SHALL NOT BE LIABLE FOR ANY INDIRECT, INCIDENTAL, SPECIAL, CONSEQUENTIAL, OR PUNITIVE DAMAGES, OR ANY LOSS OF PROFITS OR REVENUES, WHETHER INCURRED DIRECTLY OR INDIRECTLY, OR ANY LOSS OF DATA, USE, GOODWILL, OR OTHER INTANGIBLE LOSSES, RESULTING FROM YOUR USE OF THE BOT.
 
 The Bot is a third-party tool and is not responsible for any actions taken by game developers (Electronic Arts/Capital Games) that may affect your game account or the Bot's functionality.
+
+**Note:** Nothing in these Terms limits or excludes your rights under applicable data protection laws (including GDPR), which cannot be contractually waived. Your statutory rights as a data subject remain fully protected.
 
 ## 9. Disclaimer of Warranties
 

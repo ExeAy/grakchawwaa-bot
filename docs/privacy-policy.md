@@ -60,9 +60,18 @@ We use the information we collect to:
 
 ### 2.1 Legal Basis for Processing (GDPR)
 
-The legal basis for processing your personal data is:
-- **Consent:** You provide consent when you register with the Bot and use its services
-- **Legitimate Interest:** We have a legitimate interest in providing and improving the Bot's functionality, preventing abuse, and maintaining service quality
+The legal basis for processing your personal data varies by purpose:
+
+- **Consent:** You provide explicit consent when you register with the Bot and use its services. You may withdraw your consent at any time by unregistering your account.
+- **Legitimate Interest:** We process data based on legitimate interests for:
+  - Providing and improving the Bot's functionality
+  - Preventing abuse and ensuring service security
+  - Maintaining service quality and generating reports
+  - Troubleshooting and technical support
+
+### 2.2 Automated Decision-Making
+
+The Bot does not use automated decision-making or profiling that produces legal effects or significantly affects you. The violation summaries and reports are informational tools for guild management and do not constitute automated decisions under Art. 22 GDPR.
 
 ## 3. Data Storage and Security
 
@@ -72,13 +81,21 @@ Your data is stored securely in a PostgreSQL database hosted on Heroku. We imple
 
 ### 3.2 Data Retention
 
-- **Player Registration Data:** Retained until you unregister your account or request deletion
-- **Guild Configuration Data:** Retained until you unregister the guild or request deletion
-- **Ticket Violation Data:** Automatically deleted after 3 months to maintain data freshness and reduce storage requirements
-- **Support Communications:** Support requests sent via email or Discord may be retained for up to 12 months for troubleshooting, security, and service improvement purposes
-- **Server Logs:** Retained in a rolling buffer by our hosting provider for operational purposes only. These logs are not permanently stored and are automatically overwritten as new logs are generated.
+We retain personal data only for as long as necessary to fulfill the purposes outlined in this policy, unless a longer retention period is required by law. Specific retention periods:
 
-Data deletion requests are processed within 30 days of receipt.
+- **Player Registration Data:** Retained until you unregister your account or request deletion, or until the service is discontinued
+- **Guild Configuration Data:** Retained until you unregister the guild or request deletion, or until the service is discontinued
+- **Ticket Violation Data:** Automatically deleted after 3 months to maintain data freshness and reduce storage requirements
+- **Support Communications:** Retained for up to 12 months for troubleshooting, security, and service improvement purposes
+- **Server Logs:** Retained in a rolling buffer by our hosting provider for operational purposes only. These logs are not permanently stored and are automatically overwritten as new logs are generated
+
+**Criteria for determining retention periods:**
+- The purpose for which data was collected
+- Legal, regulatory, or contractual requirements
+- The need to maintain service functionality
+- User requests for deletion
+
+Data deletion requests are processed within 30 days of receipt. Upon service discontinuation, all user data will be deleted within 90 days unless legal obligations require longer retention.
 
 ## 4. Data Sharing and Disclosure
 
@@ -88,21 +105,56 @@ We do not sell, trade, or rent your personal information to third parties. We ma
 - **Legal Requirements:** We may disclose your information if required by law or in response to valid legal requests
 - **Protection of Rights:** We may disclose information to protect our rights, privacy, safety, or property, or that of our users
 
-## 5. Your Rights and Choices
+## 5. Your Rights Under GDPR
 
-### 5.1 Access and Deletion
+As a data subject, you have the following rights under the General Data Protection Regulation (GDPR):
 
-You have the right to:
+### 5.1 Right of Access
 
-- **Access your data:** Use the `/identify` command to view your registered information
-- **Delete your data:** 
-  - Use the `/unregister-player` command to remove your player registration
-  - Use the `/unregister-ticket-collection` command to remove guild monitoring
-  - Contact us directly to request deletion of all your data
+You have the right to obtain confirmation as to whether your personal data is being processed and to access that data. You can:
+- Use the `/identify` command to view your registered information
+- Request a complete copy of all your personal data by contacting us
 
-### 5.2 Data Portability
+### 5.2 Right to Rectification
 
-You may request a copy of your personal data by contacting us using the information provided in Section 8.
+You have the right to have inaccurate personal data corrected. You can:
+- Update your ally codes using the `/register-player` command
+- Contact us to correct any other inaccurate information
+
+### 5.3 Right to Erasure ("Right to be Forgotten")
+
+You have the right to request deletion of your personal data. You can:
+- Use the `/unregister-player` command to remove your player registration
+- Use the `/unregister-ticket-collection` command to remove guild monitoring
+- Contact us directly to request deletion of all your data
+
+We will delete your data within 30 days, except where we have a legal obligation to retain it.
+
+### 5.4 Right to Restriction of Processing
+
+You have the right to request restriction of processing of your personal data in certain circumstances (e.g., while accuracy is being verified, if processing is unlawful, or if you need the data for legal claims).
+
+**Practical Implementation:** Given the nature of our service, restriction of processing effectively requires unregistering your account or guild configuration, as the Bot's functionality depends on processing your data. If you request restriction, we will stop processing your data, which means you will no longer be able to use the Bot's services. If you need to maintain your data for legal claim purposes while restricting processing, please contact us to discuss alternative arrangements.
+
+### 5.5 Right to Data Portability
+
+You have the right to receive your personal data in a structured, commonly used, and machine-readable format. You may request a copy of your data by contacting us using the information provided in Section 9.
+
+### 5.6 Right to Object
+
+You have the right to object to processing of your personal data based on legitimate interests. If you object, we will stop processing unless we can demonstrate compelling legitimate grounds that override your interests.
+
+### 5.7 Right to Withdraw Consent
+
+If processing is based on consent, you have the right to withdraw your consent at any time. Withdrawal does not affect the lawfulness of processing before withdrawal.
+
+### 5.8 Right to Lodge a Complaint
+
+You have the right to lodge a complaint with a supervisory authority, in particular in Sweden (Integritetsskyddsmyndigheten) or in the EU member state of your habitual residence, if you believe that processing of your personal data violates GDPR.
+
+### 5.9 How to Exercise Your Rights
+
+To exercise any of these rights, please contact us using the information provided in Section 9. We will respond to your request within one month (this period may be extended by two months for complex requests).
 
 ## 6. Children's Privacy
 
