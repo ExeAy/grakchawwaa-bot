@@ -44,9 +44,20 @@ When using the Bot, you agree to:
 
 ## 5. Data Collection and Privacy
 
-The Bot collects and processes personal information as described in our [Privacy Policy](./privacy-policy.html). By using the Bot, you provide explicit consent to the collection and use of your information in accordance with our Privacy Policy.
+The Bot collects and processes personal information as described in our [Privacy Policy](./privacy-policy.html). 
 
-**Consent and Withdrawal:** Your consent is obtained when you register with the Bot and use its services. You may withdraw your consent at any time by unregistering your account or contacting us. Withdrawal of consent does not affect the lawfulness of processing before withdrawal, but will result in termination of service access.
+**Explicit Consent:** By using specific Bot commands, you provide explicit consent to data processing:
+- Running `/register-player` provides explicit consent for processing your Discord User ID and ally codes
+- Running `/register-ticket-collection` or `/register-anniversary-channel` provides explicit consent for processing guild and channel data
+- Simply adding the Bot to a Discord server does not constitute consent for data processing
+- Consent is recorded when you execute these commands by storing your data in our database
+
+**Consent and Withdrawal:** You may withdraw your consent at any time by:
+- Using the `/unregister-player` command to remove your player registration
+- Using the `/unregister-ticket-collection` or `/unregister-anniversary-channel` commands
+- Contacting us directly to request deletion
+
+Withdrawal of consent does not affect the lawfulness of processing before withdrawal, but will result in termination of service access.
 
 **Data Controller:** The Bot developer (ExeAy) acts as the data controller for all personal data collected through the Bot. We process data on our own behalf to provide the Bot's services, not as a processor on behalf of third parties. For detailed information about data processing, see our [Privacy Policy](./privacy-policy.html).
 
@@ -116,6 +127,8 @@ We reserve the right to modify or replace these Terms at any time. If a revision
 ## 13. Governing Law
 
 These Terms shall be governed by and construed in accordance with the laws of Sweden, without regard to its conflict of law provisions. Any disputes arising from these Terms or your use of the Bot shall be resolved in the courts of Sweden.
+
+**Note:** This choice of law does not limit or affect your rights under applicable data protection laws (including GDPR, CCPA, LGPD) in your jurisdiction. Your local data protection rights remain fully protected regardless of this governing law clause.
 
 ## 14. Severability
 

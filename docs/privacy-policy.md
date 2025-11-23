@@ -62,8 +62,12 @@ We use the information we collect to:
 
 The legal basis for processing your personal data varies by purpose:
 
-- **Consent:** You provide explicit consent when you register with the Bot and use its services. You may withdraw your consent at any time by unregistering your account.
-- **Legitimate Interest:** We process data based on legitimate interests for:
+- **Consent (Art. 6(1)(a) GDPR):** You provide explicit consent when you actively use Bot commands that collect your data:
+  - Running `/register-player` command provides consent for processing your Discord User ID and ally codes
+  - Running `/register-ticket-collection` or `/register-anniversary-channel` provides consent for processing guild and channel data
+  - Consent is recorded when you execute these commands by storing your data in our database
+  - You may withdraw your consent at any time by using the corresponding unregister commands or contacting us
+- **Legitimate Interest (Art. 6(1)(f) GDPR):** We process data based on legitimate interests for:
   - Providing and improving the Bot's functionality
   - Preventing abuse and ensuring service security
   - Maintaining service quality and generating reports
@@ -77,7 +81,13 @@ The Bot does not use automated decision-making or profiling that produces legal 
 
 ### 3.1 Storage
 
-Your data is stored securely in a PostgreSQL database hosted on Heroku. We implement appropriate technical and organizational measures to protect your personal information against unauthorized access, alteration, disclosure, or destruction.
+Your data is stored securely in a PostgreSQL database hosted on Heroku. We implement appropriate technical and organizational measures to protect your personal information against unauthorized access, alteration, disclosure, or destruction, including:
+
+- **Database encryption:** Data is encrypted at rest and in transit using industry-standard encryption protocols
+- **Access control:** Database access is restricted to authorized personnel only and requires authentication
+- **Security monitoring:** We monitor for unauthorized access attempts and security incidents
+- **Rate limiting:** We implement rate limiting to prevent abuse and protect service availability
+- **Regular security reviews:** We conduct regular reviews of our security practices and infrastructure
 
 ### 3.2 Data Retention
 
@@ -99,11 +109,48 @@ Data deletion requests are processed within 30 days of receipt. Upon service dis
 
 ## 4. Data Sharing and Disclosure
 
-We do not sell, trade, or rent your personal information to third parties. We may share your information only in the following circumstances:
+**We do not sell, rent, or trade your personal information.** We do not share your personal information for commercial purposes.
+
+We may share your information only in the following circumstances:
 
 - **Service Providers:** We share data with SWGOH Comlink as necessary to retrieve game data required for the Bot's functionality
 - **Legal Requirements:** We may disclose your information if required by law or in response to valid legal requests
 - **Protection of Rights:** We may disclose information to protect our rights, privacy, safety, or property, or that of our users
+
+### 4.1 Subprocessors
+
+We use the following third-party service providers (subprocessors) to operate the Bot:
+
+- **Heroku (Salesforce Inc.)** – Cloud hosting and database provider (EU & US regions)
+  - Purpose: Hosting the Bot application and storing user data
+  - Data processed: All personal data collected by the Bot
+  - Location: EU and United States
+  - Safeguards: Standard Contractual Clauses (SCCs) and Heroku's data processing agreement
+
+- **SWGOH Comlink** – Game data API service
+  - Purpose: Retrieving game data necessary for Bot functionality
+  - Data processed: Ally codes and guild identifiers (to fetch game data)
+  - Location: Third-party service (location may vary)
+  - Safeguards: Data is only shared as necessary for service functionality
+
+We ensure all subprocessors maintain appropriate security measures and comply with applicable data protection laws.
+
+### 4.1 California Privacy Rights (CCPA/CPRA)
+
+If you are a California resident, you have additional rights under the California Consumer Privacy Act (CCPA) and California Privacy Rights Act (CPRA):
+
+- **Right to Know:** You have the right to know what personal information we collect, use, disclose, and sell (we do not sell personal information)
+- **Right to Delete:** You have the right to request deletion of your personal information
+- **Right to Opt-Out:** Since we do not sell personal information, there is no opt-out process needed
+- **Right to Non-Discrimination:** We will not discriminate against you for exercising your privacy rights
+- **Right to Correct:** You have the right to correct inaccurate personal information
+
+**Categories of Personal Information We Collect (CCPA Categories):**
+- Identifiers (Discord User IDs)
+- Internet or other electronic network activity information (command usage, server logs)
+- Other information you provide (ally codes, guild configuration)
+
+To exercise your California privacy rights, contact us using the information in Section 9.
 
 ## 5. Your Rights Under GDPR
 
@@ -150,7 +197,12 @@ If processing is based on consent, you have the right to withdraw your consent a
 
 ### 5.8 Right to Lodge a Complaint
 
-You have the right to lodge a complaint with a supervisory authority, in particular in Sweden (Integritetsskyddsmyndigheten) or in the EU member state of your habitual residence, if you believe that processing of your personal data violates GDPR.
+You have the right to lodge a complaint with a supervisory authority if you believe that processing of your personal data violates applicable privacy laws:
+
+- **EU:** Contact the supervisory authority in your EU member state of habitual residence, or in Sweden (Integritetsskyddsmyndigheten)
+- **UK:** Information Commissioner's Office (ICO)
+- **Brazil:** Autoridade Nacional de Proteção de Dados (ANPD)
+- **California:** California Privacy Protection Agency (CPPA)
 
 ### 5.9 How to Exercise Your Rights
 
@@ -158,7 +210,11 @@ To exercise any of these rights, please contact us using the information provide
 
 ## 6. Children's Privacy
 
-The Bot is intended for users who are at least 13 years of age, in accordance with Discord's Terms of Service. We do not knowingly collect personal information from children under 13. If you are a parent or guardian and believe your child has provided us with personal information, please contact us immediately.
+The Bot is intended for users who are at least 13 years of age, in accordance with Discord's Terms of Service. We do not knowingly collect personal information from children under 13.
+
+**Parental Rights:** If you are a parent or guardian and believe your child under 13 has provided us with personal information, please contact us immediately. We will promptly delete any such information upon verification of the child's age and parental relationship.
+
+**Deletion Process:** Upon receiving a verified request from a parent or guardian regarding a child's data, we will delete the information within 7 days of verification.
 
 ## 7. International Data Transfers
 
@@ -172,7 +228,13 @@ Our hosting provider (Heroku) implements appropriate technical and organizationa
 
 ## 8. Changes to This Privacy Policy
 
-We may update this Privacy Policy from time to time. We will notify you of any material changes by updating the "Last Updated" date at the top of this policy. Your continued use of the Bot after any changes constitutes acceptance of the updated Privacy Policy.
+We may update this Privacy Policy from time to time. We will notify you of any material changes by:
+
+- Updating the "Last Updated" date at the top of this policy
+- Announcing significant changes via our Discord server (https://discord.gg/gnUJC9ab) or support channel
+- Providing at least 30 days notice for material changes that affect your rights
+
+Your continued use of the Bot after any changes constitutes acceptance of the updated Privacy Policy. If you do not agree with the changes, you may withdraw your consent and unregister your account.
 
 ## 9. Contact Us
 
@@ -183,9 +245,38 @@ If you have any questions, concerns, or requests regarding this Privacy Policy o
 - **GitHub:** ExeAy
 - **Discord Server:** https://discord.gg/gnUJC9ab
 
-## 10. Governing Law
+## 10. Regional Privacy Rights
 
-This Privacy Policy is governed by the laws of Sweden. If you have concerns about how we handle your data, you may contact the Swedish Data Protection Authority (Integritetsskyddsmyndigheten).
+### 10.1 European Union (GDPR) and United Kingdom (UK GDPR)
+
+This Privacy Policy complies with the General Data Protection Regulation (GDPR) and UK GDPR. If you are located in the EU or UK and have concerns about how we handle your data, you may contact:
+
+- **Sweden:** Integritetsskyddsmyndigheten (Swedish Data Protection Authority)
+- **UK:** Information Commissioner's Office (ICO)
+- **Your local supervisory authority** in your EU member state
+
+### 10.2 Brazil (LGPD)
+
+If you are located in Brazil, you have rights under the Lei Geral de Proteção de Dados (LGPD), which are similar to GDPR rights. You have the right to:
+
+- Confirm the existence of data processing
+- Access your data
+- Correct incomplete, inaccurate, or outdated data
+- Anonymize, block, or delete unnecessary or excessive data
+- Data portability
+- Delete personal data processed with consent
+- Information about data sharing
+- Revoke consent
+
+To exercise your LGPD rights, contact us using the information in Section 9.
+
+### 10.3 California (CCPA/CPRA)
+
+See Section 4.1 for California-specific privacy rights.
+
+### 10.4 Governing Law
+
+This Privacy Policy is governed by the laws of Sweden. However, we respect the privacy laws of all jurisdictions where our users are located and will comply with applicable local requirements.
 
 ---
 
