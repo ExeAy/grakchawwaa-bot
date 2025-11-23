@@ -1,0 +1,69 @@
+---
+alwaysApply: true
+---
+
+# Legal Documents Maintenance
+
+When making changes to the bot that affect data collection, user features, or service functionality, you MUST update the corresponding legal documents:
+
+## Files to Update
+
+- **`docs/terms-of-service.md`** - Terms of Service (usage rules, user responsibilities, service description)
+- **`docs/privacy-policy.md`** - Privacy Policy (data collection, storage, user rights, data retention)
+
+## When to Update
+
+Update the legal documents when:
+
+1. **Data Collection Changes:**
+   - Adding new data types collected
+   - Changing how data is stored
+   - Modifying data retention periods
+   - Adding new third-party services that receive data
+
+2. **Feature Changes:**
+   - Adding new bot commands or features
+   - Changing how existing features work
+   - Adding new services (e.g., ticket monitoring, anniversary tracking)
+
+3. **Infrastructure Changes:**
+   - Changing database or storage providers
+   - Modifying data security measures
+   - Changing data processing locations
+
+4. **User Rights Changes:**
+   - Adding or modifying commands for data access/deletion
+   - Changing how users can manage their data
+
+5. **Contact Information:**
+   - Updating contact methods or information
+
+## Update Process
+
+1. Identify which document(s) need updating (Terms of Service, Privacy Policy, or both)
+2. Update the relevant sections with accurate information
+3. Update the "Last Updated" date (handled automatically by Jekyll template)
+4. Ensure cross-references between documents remain accurate
+5. Verify all placeholders are filled in
+
+## Key Sections Reference
+
+**Terms of Service:**
+- Section 2: Description of Service (bot features)
+- Section 4: User Responsibilities
+- Section 5: Data Collection and Privacy (summary, links to Privacy Policy)
+
+**Privacy Policy:**
+- Section 1: Information We Collect
+- Section 2: How We Use Your Information
+- Section 3: Data Storage and Security
+- Section 3.2: Data Retention (currently: ticket violations auto-deleted after 3 months)
+- Section 5: Your Rights and Choices (bot commands for data management)
+
+## Important Notes
+
+- Both documents are published via GitHub Pages
+- Documents use Jekyll templates for automatic date updates
+- Always maintain consistency between Terms of Service and Privacy Policy
+- Cross-reference between documents where appropriate
+- Keep technical details accurate (e.g., PostgreSQL on Heroku, 3-month retention for ticket violations)
