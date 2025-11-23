@@ -21,7 +21,7 @@ By using **grakchawwaa-bot** (the "Bot"), you agree to be bound by these Terms o
 - Guild member management and information retrieval
 - Weekly and monthly violation summaries
 
-The Bot integrates with third-party services (including SWGOH Comlink) to retrieve game data. The Bot is not affiliated with, endorsed by, or associated with Electronic Arts, Capital Games, or the Star Wars: Galaxy of Heroes game.
+The Bot integrates with third-party services (including SWGOH Comlink) to retrieve game data. The Bot does not guarantee the accuracy, completeness, or reliability of third-party data retrieved from SWGOH Comlink or related services. The Bot is not affiliated with, endorsed by, or associated with Electronic Arts, Capital Games, or the Star Wars: Galaxy of Heroes game.
 
 ## 3. Eligibility
 
@@ -36,12 +36,26 @@ When using the Bot, you agree to:
 - Not use the Bot for any illegal, harmful, or unauthorized purposes
 - Not attempt to reverse engineer, decompile, or otherwise tamper with the Bot
 - Not use the Bot to spam, harass, or abuse other users
+- Not automate, overload, or excessively query the Bot in ways that may degrade service performance
 - Comply with Discord's Terms of Service and Community Guidelines
 - Respect the privacy and rights of other users
+
+**Server Owner Responsibilities:** If you are a Discord server owner or administrator, you are responsible for ensuring that your use of the Bot and your server's configuration comply with Discord's Terms of Service and these Terms.
 
 ## 5. Data Collection and Privacy
 
 The Bot collects and processes personal information as described in our [Privacy Policy](./privacy-policy.html). By using the Bot, you consent to the collection and use of your information in accordance with our Privacy Policy.
+
+### 5.1 Discord Permissions
+
+The Bot requires certain Discord permissions to function, including the ability to:
+- Read messages and interactions in channels where the Bot is configured
+- Send messages and embeds to designated channels
+- Access user IDs and guild information
+
+These permissions are used solely to provide the Bot's services and are not used for any other purpose.
+
+### 5.2 Data Protection Summary
 
 Key points:
 - We collect Discord User IDs, ally codes, guild information, and ticket violation data
@@ -55,9 +69,13 @@ For detailed information about how we collect, use, and protect your data, pleas
 
 The Bot and its original content, features, and functionality are owned by the Bot developer and are protected by international copyright, trademark, and other intellectual property laws. Star Wars: Galaxy of Heroes is a trademark of Electronic Arts Inc. This Bot is not affiliated with or endorsed by Electronic Arts or Capital Games.
 
+### 6.1 User Feedback
+
+Any feedback, suggestions, ideas, or other submissions you provide regarding the Bot ("Feedback") will become the sole property of the Bot developer. You agree that we may use, modify, and incorporate such Feedback into the Bot without compensation or attribution to you.
+
 ## 7. Service Availability
 
-The Bot is provided "as is" and "as available." We do not guarantee that the Bot will be available at all times or that it will be free from errors, bugs, or interruptions. We reserve the right to modify, suspend, or discontinue the Bot (or any part thereof) at any time with or without notice.
+The Bot is provided "as is" and "as available." We do not guarantee that the Bot will be available at all times or that it will be free from errors, bugs, or interruptions. We reserve the right to modify, suspend, or discontinue the Bot (or any part thereof) at any time with or without notice. Features may be modified, removed, or added at any time without compensation or obligation to users.
 
 ## 8. Limitation of Liability
 

@@ -9,6 +9,8 @@ title: Privacy Policy - grakchawwaa-bot
 
 This Privacy Policy describes how **grakchawwaa-bot** (the "Bot") collects, uses, and protects your personal information when you use our Discord bot service.
 
+**Data Controller:** The data controller for this service is the Bot developer (ExeAy), contactable at support.graakchawwaa@icloud.com.
+
 ## 1. Information We Collect
 
 ### 1.1 Information You Provide
@@ -32,6 +34,12 @@ The Bot automatically collects the following information:
   - Timestamps of violations
   - This data is used to generate weekly and monthly summaries
 
+- **Server Logs:** Our hosting infrastructure automatically generates server logs that may include:
+  - Request timestamps
+  - Command usage metadata
+  - Error logs for troubleshooting
+  - These logs do not contain message content and are not used for user profiling
+
 ### 1.3 Information from Third-Party Services
 
 The Bot integrates with **SWGOH Comlink** to retrieve game data necessary for providing the Bot's services. This includes:
@@ -50,6 +58,12 @@ We use the information we collect to:
 - Store your preferences and configuration settings
 - Improve and optimize the Bot's functionality
 
+### 2.1 Legal Basis for Processing (GDPR)
+
+The legal basis for processing your personal data is:
+- **Consent:** You provide consent when you register with the Bot and use its services
+- **Legitimate Interest:** We have a legitimate interest in providing and improving the Bot's functionality, preventing abuse, and maintaining service quality
+
 ## 3. Data Storage and Security
 
 ### 3.1 Storage
@@ -61,6 +75,10 @@ Your data is stored securely in a PostgreSQL database hosted on Heroku. We imple
 - **Player Registration Data:** Retained until you unregister your account or request deletion
 - **Guild Configuration Data:** Retained until you unregister the guild or request deletion
 - **Ticket Violation Data:** Automatically deleted after 3 months to maintain data freshness and reduce storage requirements
+- **Support Communications:** Support requests sent via email or Discord may be retained for up to 12 months for troubleshooting, security, and service improvement purposes
+- **Server Logs:** Retained in a rolling buffer by our hosting provider for operational purposes only. These logs are not permanently stored and are automatically overwritten as new logs are generated.
+
+Data deletion requests are processed within 30 days of receipt.
 
 ## 4. Data Sharing and Disclosure
 
@@ -92,7 +110,13 @@ The Bot is intended for users who are at least 13 years of age, in accordance wi
 
 ## 7. International Data Transfers
 
-Your information may be transferred to and processed in countries other than your country of residence. These countries may have data protection laws that differ from those in your country. By using the Bot, you consent to the transfer of your information to these countries.
+Your information may be transferred to and processed in countries other than your country of residence. These countries may have data protection laws that differ from those in your country.
+
+When transferring data outside the EU/EEA, we rely on:
+- Standard Contractual Clauses (SCCs) or equivalent safeguards as provided by our service providers
+- Adequate protection measures to ensure your data remains secure
+
+Our hosting provider (Heroku) implements appropriate technical and organizational measures to protect your data during international transfers. By using the Bot, you consent to the transfer of your information to these countries.
 
 ## 8. Changes to This Privacy Policy
 
