@@ -50,7 +50,7 @@ The Bot collects and processes personal information as described in our [Privacy
 - Running `/register-player` provides explicit consent for processing your Discord User ID and ally codes
 - Running `/register-ticket-collection` or `/register-anniversary-channel` provides explicit consent for processing guild and channel data
 - Simply adding the Bot to a Discord server does not constitute consent for data processing
-- Consent is recorded when you execute these commands by storing your data in our database
+- Consent is recorded with a timestamp when you execute these commands (stored in our database)
 
 **Consent and Withdrawal:** You may withdraw your consent at any time by:
 - Using the `/unregister-player` command to remove your player registration

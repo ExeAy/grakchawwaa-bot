@@ -2,7 +2,8 @@ export const CREATE_TABLES_QUERY = `
   CREATE TABLE IF NOT EXISTS players (
     discord_id text NOT NULL PRIMARY KEY,
     ally_code char(9) NOT NULL,
-    alt_ally_codes char(9)[]
+    alt_ally_codes char(9)[],
+    registered_at timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP
   );
 
   CREATE TABLE IF NOT EXISTS ticketViolations (

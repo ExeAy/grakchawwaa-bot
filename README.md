@@ -125,6 +125,47 @@ PGDATABASE=grakchawwaa_dev
 - `pnpm docker:setup` - Start database and run setup scripts
 - `pnpm docker:reset` - Reset database (removes all data) and re-run setup
 
+**Querying the Database:**
+
+To query the database directly, you can use `psql` inside the Docker container:
+
+```bash
+# Connect to the database
+docker exec -it grakchawwaa-postgres psql -U grakchawwaa -d grakchawwaa_dev
+```
+
+Once connected, you can run SQL queries:
+
+```sql
+-- List all tables
+\dt
+
+-- Query the players table
+SELECT * FROM players;
+
+-- Check table structure
+\d players
+
+-- Query with specific columns
+SELECT discord_id, ally_code, registered_at FROM players;
+```
+
+Useful psql commands:
+- `\dt` - List all tables
+- `\d table_name` - Describe a table structure
+- `\q` - Quit psql
+- `\l` - List all databases
+
+You can also run one-liner queries without entering interactive mode:
+
+```bash
+# Run a single query
+docker exec -it grakchawwaa-postgres psql -U grakchawwaa -d grakchawwaa_dev -c "SELECT * FROM players;"
+
+# Check table structure
+docker exec -it grakchawwaa-postgres psql -U grakchawwaa -d grakchawwaa_dev -c "\d players"
+```
+
 ## Deployment
 
 This bot runs as a **worker dyno only** on Heroku (not a web dyno). 

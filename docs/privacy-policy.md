@@ -65,7 +65,7 @@ The legal basis for processing your personal data varies by purpose:
 - **Consent (Art. 6(1)(a) GDPR):** You provide explicit consent when you actively use Bot commands that collect your data:
   - Running `/register-player` command provides consent for processing your Discord User ID and ally codes
   - Running `/register-ticket-collection` or `/register-anniversary-channel` provides consent for processing guild and channel data
-  - Consent is recorded when you execute these commands by storing your data in our database
+  - Consent is recorded with a timestamp when you execute these commands (stored as `registered_at` in our database)
   - You may withdraw your consent at any time by using the corresponding unregister commands or contacting us
 - **Legitimate Interest (Art. 6(1)(f) GDPR):** We process data based on legitimate interests for:
   - Providing and improving the Bot's functionality

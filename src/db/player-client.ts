@@ -6,17 +6,18 @@ interface PlayerRow extends QueryResultRow {
   discord_id: string
   ally_code: string
   alt_ally_codes: string[]
+  registered_at: Date | string
 }
 
 const QUERIES = {
   ADD_USER: `
-    INSERT INTO players (discord_id, ally_code, alt_ally_codes)
-    VALUES ($1, $2, $3)
+    INSERT INTO players (discord_id, ally_code, alt_ally_codes, registered_at)
+    VALUES ($1, $2, $3, CURRENT_TIMESTAMP)
     ON CONFLICT (discord_id) DO UPDATE 
     SET ally_code = $2, alt_ally_codes = $3;
   `,
   GET_PLAYER: `
-    SELECT discord_id, ally_code, alt_ally_codes
+    SELECT discord_id, ally_code, alt_ally_codes, registered_at
     FROM players
     WHERE discord_id = $1;
   `,
