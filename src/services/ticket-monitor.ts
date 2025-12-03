@@ -256,7 +256,10 @@ export class TicketMonitorService {
         violators,
       )
     } else {
-      console.log(`No ticket violations found for guild ${guildId}`)
+      await this.sendSuccessNotification(
+        channelId,
+        guildData.guild.profile.name,
+      )
     }
   }
 
@@ -493,6 +496,36 @@ export class TicketMonitorService {
       }
     } catch (error) {
       console.error(`Error generating summaries for guild ${guildId}:`, error)
+    }
+  }
+
+  private async sendSuccessNotification(
+    channelId: string,
+    guildName: string,
+  ): Promise<void> {
+    try {
+      const channel = (await this.client.channels.fetch(
+        channelId,
+      )) as TextChannel
+      if (!channel || !channel.isTextBased()) {
+        console.error(`Channel ${channelId} not found or not a text channel`)
+        return
+      }
+
+      const embed = new EmbedBuilder()
+        .setColor(0x57f287) // Green color for success
+        .setTitle(`🎉 Perfect Ticket Collection for ${guildName}!`)
+        .setDescription(
+          `Everyone in the guild collected ${TicketMonitorService.TICKET_THRESHOLD} daily raid tickets! Great job, team! 🚀`,
+        )
+        .setTimestamp()
+
+      await channel.send({ embeds: [embed] })
+    } catch (error) {
+      console.error(
+        `Error sending success notification to channel ${channelId}:`,
+        error,
+      )
     }
   }
 
