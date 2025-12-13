@@ -84,9 +84,19 @@ pnpm install
     COMLINK_URL=
     COMLINK_ACCESS_KEY=""
     COMLINK_SECRET_KEY=""
+
+    MHANNDALORIAN_API_KEY=
+    MHANNDALORIAN_DISCORD_ID=
+    MHANNDALORIAN_ALLY_CODE=
   ```
 
 You will need to register your own discord bot (for manual testing) and setup you own [swgoh comlink instance](https://github.com/swgoh-utils/swgoh-comlink). From those you can fill in the values missing above.
+
+For Mhanndalorian API access:
+- Subscribe to the [Mhanndalorian Bot Patreon](https://mhanndalorianbot.work/api.html) ($1/month for Developer API Access)
+- Run `/eaconnect` in Mhanndalorian Bot to link your EA account
+- Get your API key from the bot
+- Use your Discord ID and ally code for authentication
 
 ### Database Setup
 
