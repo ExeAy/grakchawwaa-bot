@@ -1,76 +1,25 @@
 {
-  "name": "grakchawwaa-bot",
+  "name": "grakchawwaa",
   "private": true,
   "version": "1.0.0",
-  "description": "Discord example app",
-  "main": "src/index.ts",
+  "description": "SWGOH guild management platform - monorepo",
   "packageManager": "pnpm@10.10.0",
   "engines": {
     "node": "24.x"
   },
   "scripts": {
-    "build": "tsc",
-    "start": "node dist/index.js",
-    "setupHerokuDB": "dotenvx run -f .env.prod -- ts-node infra/setupHerokuDB.ts",
-    "docker:up": "docker-compose up -d",
-    "docker:down": "docker-compose down",
-    "docker:setup": "docker-compose up -d && ts-node infra/setupDockerDB.ts",
-    "docker:reset": "docker-compose down -v && docker-compose up -d && ts-node infra/setupDockerDB.ts",
-    "dev": "dotenvx run -f .env.dev -- ts-node src/index.ts",
-    "prod": "dotenvx run -f .env.prod -- ts-node src/index.ts",
-    "reset-commands-dev": "dotenvx run -f .env.dev -- ts-node infra/reset-commands.ts",
-    "reset-commands-prod": "dotenvx run -f .env.prod -- ts-node infra/reset-commands.ts",
-    "see-heroku-log": "heroku logs --tail --app grakchawwaa --dyno=worker.1",
-    "lint": "eslint '**/*.ts'",
-    "format": "prettier --write \"src/**/*.ts\"",
-    "test": "jest",
-    "test:watch": "jest --watch",
-    "test:coverage": "jest --coverage",
-    "test:ci": "jest --ci",
-    "migration:create": "mikro-orm migration:create",
-    "migration:up": "mikro-orm migration:up",
-    "migration:down": "mikro-orm migration:down"
-  },
-  "mikro-orm": {
-    "useTsNode": true,
-    "configPaths": [
-      "./src/mikro-orm.config.ts",
-      "./dist/mikro-orm.config.js"
-    ]
+    "build": "pnpm -r build",
+    "dev:bot": "pnpm --filter @grakchawwaa/discord-bot dev",
+    "dev:web": "pnpm --filter @grakchawwaa/web dev",
+    "dev:worker": "pnpm --filter @grakchawwaa/worker dev",
+    "test": "pnpm -r test",
+    "lint": "pnpm -r lint",
+    "format": "pnpm -r format",
+    "clean": "pnpm -r clean && rm -rf node_modules"
   },
   "author": "ExeAy",
   "license": "MIT",
-  "dependencies": {
-    "@mikro-orm/cli": "^6.6.2",
-    "@mikro-orm/core": "^6.6.2",
-    "@mikro-orm/migrations": "^6.6.2",
-    "@mikro-orm/postgresql": "^6.6.2",
-    "@sapphire/discord.js-utilities": "^7.3.2",
-    "@sapphire/framework": "^5.4.0",
-    "@sapphire/pieces": "^4.4.1",
-    "@swgoh-utils/comlink": "^1.4.1",
-    "discord.js": "~14.24.2",
-    "pg": "^8.16.3"
-  },
   "devDependencies": {
-    "@dotenvx/dotenvx": "^1.51.1",
-    "@eslint/js": "^9.39.1",
-    "@jest/test-sequencer": "^30.2.0",
-    "@types/jest": "^30.0.0",
-    "@types/node": "^24.10.1",
-    "@types/pg": "^8.15.6",
-    "eslint": "^9.39.1",
-    "eslint-config-prettier": "^10.1.8",
-    "globals": "^16.5.0",
-    "heroku": "^10.15.0",
-    "jest": "^30.2.0",
-    "prettier": "^3.6.2",
-    "prettier-plugin-organize-imports": "^4.3.0",
-    "ts-jest": "^29.4.5",
-    "ts-node": "^10.9.2",
-    "ts-node-dev": "^2.0.0",
-    "tslib": "^2.8.1",
-    "typescript": "^5.9.3",
-    "typescript-eslint": "^8.46.4"
+    "typescript": "^5.9.3"
   }
 }

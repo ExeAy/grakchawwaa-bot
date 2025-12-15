@@ -1,5 +1,5 @@
 import { User } from "discord.js"
-import { Player } from "../entities/Player.entity"
+import { Player } from "@grakchawwaa/core"
 
 export interface DiscordPlayer {
   player: Player

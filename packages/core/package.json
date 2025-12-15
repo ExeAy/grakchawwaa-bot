@@ -1,0 +1,28 @@
+{
+  "name": "@grakchawwaa/core",
+  "version": "1.0.0",
+  "description": "Shared core logic for SWGOH guild management platform",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "clean": "rm -rf dist"
+  },
+  "dependencies": {
+    "@mikro-orm/cli": "^6.6.2",
+    "@mikro-orm/core": "^6.6.2",
+    "@mikro-orm/migrations": "^6.6.2",
+    "@mikro-orm/postgresql": "^6.6.2",
+    "@swgoh-utils/comlink": "^1.4.1",
+    "pg": "^8.16.3"
+  },
+  "devDependencies": {
+    "@dotenvx/dotenvx": "^1.51.1",
+    "@types/node": "^24.10.1",
+    "@types/pg": "^8.15.6",
+    "ts-node": "^10.9.2",
+    "tslib": "^2.8.1",
+    "typescript": "^5.9.3"
+  }
+}

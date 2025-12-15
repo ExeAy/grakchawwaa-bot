@@ -148,8 +148,12 @@ export class AnniversaryMonitorService {
     }
 
     guildData.guild.member.push({
+      id: "123",
       playerId: "123",
+      name: "Test Player",
       playerName: "Test Player",
+      allyCode: "123456789",
+      guildId: guildId,
       playerLevel: 85,
       memberLevel: 1,
       lastActivityTime: "1684650758",

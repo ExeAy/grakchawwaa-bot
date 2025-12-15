@@ -1,0 +1,13 @@
+{
+  "name": "@grakchawwaa/web",
+  "version": "1.0.0",
+  "description": "Web application for SWGOH guild management",
+  "scripts": {
+    "dev": "echo \"Web app not implemented yet\"",
+    "build": "echo \"Web app not implemented yet\"",
+    "clean": "echo \"Web app not implemented yet\""
+  },
+  "dependencies": {
+    "@grakchawwaa/core": "workspace:*"
+  }
+}

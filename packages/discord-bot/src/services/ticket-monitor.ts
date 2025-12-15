@@ -1,8 +1,8 @@
 import { container } from "@sapphire/pieces"
 import { ComlinkGuildData, ComlinkGuildMember } from "@swgoh-utils/comlink"
 import { EmbedBuilder, TextChannel, userMention } from "discord.js"
+import { normalizeAllyCode } from "@grakchawwaa/core"
 import { DiscordBotClient } from "../discord-bot-client"
-import { normalizeAllyCode } from "../utils/ally-code"
 import { ViolationSummaryService } from "./violation-summary"
 
 interface TicketViolator {

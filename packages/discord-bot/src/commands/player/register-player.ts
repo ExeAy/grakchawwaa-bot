@@ -1,7 +1,6 @@
 import { Command } from "@sapphire/framework"
 import { User, userMention } from "discord.js"
-import { Player } from "../../entities/Player.entity"
-import { normalizeAllyCode, sanitizeAllyCodeList } from "../../utils/ally-code"
+import { Player, normalizeAllyCode, sanitizeAllyCodeList } from "@grakchawwaa/core"
 import { PlayerOperationsCommand } from "./player-operations"
 
 export class RegisterPlayerCommand extends Command {

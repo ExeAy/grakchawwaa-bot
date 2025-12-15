@@ -1,7 +1,7 @@
 import { Command } from "@sapphire/framework"
 import { userMention } from "discord.js"
+import { formatAllyCode } from "@grakchawwaa/core"
 import { PlayerOperationsCommand } from "./player-operations"
-import { formatAllyCode } from "../../utils/ally-code"
 
 export class IdentifyCommand extends Command {
   private playerOps: PlayerOperationsCommand

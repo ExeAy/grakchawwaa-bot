@@ -1,4 +1,5 @@
-import { initializeMikroORM } from "./db/mikro-orm"
+import { initializeMikroORM } from "@grakchawwaa/core"
+import { container } from "@sapphire/pieces"
 import { setupPostgresClients } from "./db/postgres-client"
 import { DiscordBotClient } from "./discord-bot-client"
 import { AnniversaryMonitorService } from "./services/anniversary-monitor"
@@ -8,7 +9,8 @@ import { TicketMonitorService } from "./services/ticket-monitor"
 import { ViolationSummaryService } from "./services/violation-summary"
 
 async function main() {
-  await initializeMikroORM()
+  const orm = await initializeMikroORM()
+  container.orm = orm
   setupPostgresClients()
   setupServices()
   setupComlinkClient()

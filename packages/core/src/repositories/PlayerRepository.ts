@@ -1,26 +1,25 @@
 import { EntityRepository } from "@mikro-orm/postgresql"
-import { User } from "discord.js"
 import { Player } from "../entities/Player.entity"
 import { normalizeAllyCode } from "../utils/ally-code"
 
 export class PlayerRepository extends EntityRepository<Player> {
-  async addUser(discordUser: User, allyCode: string, altAllyCodes?: string[]): Promise<boolean> {
-    if (!discordUser?.id || !allyCode) {
+  async addUser(discordId: string, allyCode: string, altAllyCodes?: string[]): Promise<boolean> {
+    if (!discordId || !allyCode) {
       console.error("Invalid player data")
       return false
     }
 
-    console.log("Adding user", discordUser.id, allyCode)
+    console.log("Adding user", discordId, allyCode)
 
     try {
-      let player = await this.findOne({ discordId: discordUser.id })
+      let player = await this.findOne({ discordId })
 
       if (player) {
         player.allyCode = allyCode
         player.altAllyCodes = altAllyCodes ?? []
       } else {
         player = this.create({
-          discordId: discordUser.id,
+          discordId,
           allyCode,
           altAllyCodes: altAllyCodes ?? [],
           registeredAt: new Date(),
@@ -50,14 +49,14 @@ export class PlayerRepository extends EntityRepository<Player> {
     }
   }
 
-  async removeAllyCode(discordUser: User, allyCode: string): Promise<boolean> {
-    if (!discordUser?.id || !allyCode) {
+  async removeAllyCode(discordId: string, allyCode: string): Promise<boolean> {
+    if (!discordId || !allyCode) {
       console.error("Invalid player data")
       return false
     }
 
     try {
-      const player = await this.findOne({ discordId: discordUser.id })
+      const player = await this.findOne({ discordId })
 
       if (!player) {
         return false
@@ -81,14 +80,14 @@ export class PlayerRepository extends EntityRepository<Player> {
     }
   }
 
-  async removePlayer(discordUser: User): Promise<boolean> {
-    if (!discordUser?.id) {
+  async removePlayer(discordId: string): Promise<boolean> {
+    if (!discordId) {
       console.error("Invalid player data")
       return false
     }
 
     try {
-      const player = await this.findOne({ discordId: discordUser.id })
+      const player = await this.findOne({ discordId })
 
       if (!player) {
         return false

@@ -1,5 +1,5 @@
 import { Command } from "@sapphire/framework"
-import { Player } from "../../entities/Player.entity"
+import { Player } from "@grakchawwaa/core"
 
 export class PlayerOperationsCommand extends Command {
   public constructor(context: Command.LoaderContext, options: Command.Options) {
@@ -21,8 +21,7 @@ export class PlayerOperationsCommand extends Command {
     altAllyCodes?: string[],
   ): Promise<boolean> {
     const repository = this.container.playerRepository
-    const user = await this.container.client.users.fetch(discordUserId)
-    return repository.addUser(user, allyCode, altAllyCodes)
+    return repository.addUser(discordUserId, allyCode, altAllyCodes)
   }
 
   public async removeAllyCode(
@@ -30,13 +29,11 @@ export class PlayerOperationsCommand extends Command {
     allyCode: string,
   ): Promise<boolean> {
     const repository = this.container.playerRepository
-    const user = await this.container.client.users.fetch(discordUserId)
-    return repository.removeAllyCode(user, allyCode)
+    return repository.removeAllyCode(discordUserId, allyCode)
   }
 
   public async removePlayer(discordUserId: string): Promise<boolean> {
     const repository = this.container.playerRepository
-    const user = await this.container.client.users.fetch(discordUserId)
-    return repository.removePlayer(user)
+    return repository.removePlayer(discordUserId)
   }
 }

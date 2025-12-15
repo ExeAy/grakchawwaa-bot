@@ -7,7 +7,7 @@ import {
   MessageFlags,
   TextChannel,
 } from "discord.js"
-import { TicketViolation } from "../entities/TicketViolation.entity"
+import { TicketViolation } from "@grakchawwaa/core"
 import { DiscordBotClient } from "../discord-bot-client"
 
 interface ViolationSummary {
