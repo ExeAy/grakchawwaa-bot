@@ -31,39 +31,84 @@ Star Wars: Galaxy of Heroes is a mobile game where players collect characters an
 
 - **Runtime:** Node.js 24.x
 - **Language:** TypeScript 5.9.3
+- **Architecture:** pnpm monorepo (workspace)
 - **Framework:** [Sapphire Framework](https://www.sapphirejs.dev/) (Discord.js wrapper)
 - **Database:** PostgreSQL 16
 - **ORM:** [MikroORM](https://mikro-orm.io/) 6.6.2
-- **Package Manager:** pnpm 10.10.0
+- **Package Manager:** pnpm 10.10.0 (workspaces enabled)
 - **External API:** SWGOH Comlink (game data API)
 - **Testing:** Jest
 - **Deployment:** Heroku (worker dyno only)
 
-## Project Structure
+## Project Structure (Monorepo)
 
 ```
-├── src/
-│   ├── commands/          # Discord slash commands
-│   ├── db/                # Database initialization
-│   ├── entities/          # MikroORM entities
-│   ├── repositories/      # Custom MikroORM repositories
-│   ├── migrations/        # Database migrations
-│   ├── services/          # Business logic services
-│   │   ├── comlink/       # SWGOH Comlink API integration
-│   │   ├── ticket-monitor.ts
-│   │   ├── anniversary-monitor.ts
-│   │   └── violation-summary.ts
-│   ├── types/             # TypeScript type definitions
-│   ├── utils/             # Utility functions
-│   ├── tests/             # Test files
-│   ├── index.ts           # Main entry point
-│   ├── mikro-orm.config.ts # MikroORM configuration
-│   └── discord-bot-client.ts
-├── infra/                 # Infrastructure scripts (DB setup, command reset)
-├── docs/                  # Legal documents (ToS, Privacy Policy)
-├── docker-compose.yml     # Local PostgreSQL setup
-└── package.json
+├── packages/
+│   ├── core/                          # @grakchawwaa/core - Shared framework-agnostic code
+│   │   ├── src/
+│   │   │   ├── entities/              # MikroORM entities (Player, GuildMessageChannels, TicketViolation)
+│   │   │   ├── repositories/          # Custom MikroORM repositories with domain logic
+│   │   │   ├── migrations/            # Database migrations
+│   │   │   ├── db/                    # MikroORM initialization (getORM, initializeMikroORM)
+│   │   │   ├── utils/                 # Utilities (ally code normalization, etc.)
+│   │   │   └── index.ts               # Public API exports
+│   │   ├── package.json               # Core dependencies (MikroORM, Comlink, pg)
+│   │   └── tsconfig.json
+│   │
+│   ├── discord-bot/                   # @grakchawwaa/discord-bot - Discord bot application
+│   │   ├── src/
+│   │   │   ├── commands/              # Discord slash commands
+│   │   │   │   ├── guild/             # Guild management commands
+│   │   │   │   └── player/            # Player registration commands
+│   │   │   ├── services/              # Bot-specific services
+│   │   │   │   ├── comlink/           # Comlink API integration
+│   │   │   │   ├── ticket-monitor.ts  # Ticket tracking service
+│   │   │   │   ├── anniversary-monitor.ts
+│   │   │   │   └── violation-summary.ts
+│   │   │   ├── db/                    # Sapphire container setup for repositories
+│   │   │   ├── types/                 # TypeScript type definitions
+│   │   │   ├── tests/                 # Test files
+│   │   │   └── index.ts               # Bot entry point
+│   │   ├── infra/                     # DB setup scripts
+│   │   ├── types/                     # External type definitions (@swgoh-utils/comlink)
+│   │   ├── package.json               # Bot dependencies (imports @grakchawwaa/core)
+│   │   └── tsconfig.json
+│   │
+│   ├── web/                           # @grakchawwaa/web - Future web app (placeholder)
+│   │   └── package.json
+│   │
+│   └── worker/                        # @grakchawwaa/worker - Future background worker (placeholder)
+│       └── package.json
+│
+├── pnpm-workspace.yaml                # Workspace configuration
+├── tsconfig.base.json                 # Shared TypeScript config
+├── docker-compose.yml                 # Local development environment
+├── package.json                       # Root package with workspace scripts
+└── docs/                              # Legal documents (ToS, Privacy Policy)
 ```
+
+### Monorepo Architecture
+
+The project uses a **pnpm workspace** to share code between multiple applications:
+
+- **@grakchawwaa/core**: Framework-agnostic database layer and business logic
+  - MikroORM entities, repositories, and migrations
+  - Utility functions (ally code handling)
+  - Can be shared by Discord bot, web app, and background worker
+  - No dependencies on Discord.js or other framework-specific code
+
+- **@grakchawwaa/discord-bot**: Discord bot that imports from core
+  - Discord-specific presentation layer
+  - Commands and services that use core repositories
+  - Sapphire framework integration
+
+- **@grakchawwaa/web**: Future web app for guild management (placeholder)
+  - Will import from core for database access
+  - Next.js or similar web framework
+
+- **@grakchawwaa/worker**: Future background worker for scheduled tasks (placeholder)
+  - Will import from core for database access
+  - Handles periodic guild data syncing, report generation, etc.
 
 ## Core Functionality
 
@@ -150,16 +195,18 @@ The application uses **MikroORM** for database access with TypeScript entities a
 - `ticketViolations` - Historical ticket violation records
 - `mikro_orm_migrations` - Migration tracking
 
-### Entities
-- `Player` ([src/entities/Player.entity.ts](src/entities/Player.entity.ts))
-- `GuildMessageChannels` ([src/entities/GuildMessageChannels.entity.ts](src/entities/GuildMessageChannels.entity.ts))
-- `TicketViolation` ([src/entities/TicketViolation.entity.ts](src/entities/TicketViolation.entity.ts))
+### Entities (in @grakchawwaa/core)
+- `Player` ([packages/core/src/entities/Player.entity.ts](packages/core/src/entities/Player.entity.ts))
+- `GuildMessageChannels` ([packages/core/src/entities/GuildMessageChannels.entity.ts](packages/core/src/entities/GuildMessageChannels.entity.ts))
+- `TicketViolation` ([packages/core/src/entities/TicketViolation.entity.ts](packages/core/src/entities/TicketViolation.entity.ts))
 
-### Repositories
+### Repositories (in @grakchawwaa/core)
 Custom repositories extend `EntityRepository` with domain-specific methods:
-- `PlayerRepository` - Player registration, lookup by ally code
+- `PlayerRepository` - Player registration, lookup by ally code (accepts `discordId: string`)
 - `GuildMessageChannelsRepository` - Guild channel configuration
 - `TicketViolationRepository` - Violation tracking and reporting
+
+**Key Change:** PlayerRepository methods now accept `discordId: string` instead of Discord.js `User` objects to maintain framework independence.
 
 ## Development Setup
 
@@ -202,9 +249,8 @@ COMLINK_SECRET_KEY=
 # 2. Start all services (PostgreSQL + Bot with Node.js 24)
 docker compose up -d
 
-# 3. Create database tables and run migrations
-docker exec grakchawwaa-bot pnpm ts-node infra/setupDockerDB.ts
-docker exec grakchawwaa-bot pnpm migration:up
+# 3. Initialize database (optional - migrations run automatically on startup)
+docker exec grakchawwaa-bot ts-node packages/discord-bot/infra/setupDockerDB.ts
 
 # 4. View logs
 docker compose logs -f bot
@@ -213,25 +259,43 @@ docker compose logs -f bot
 # https://discord.com/oauth2/authorize?client_id=YOUR_APP_ID&permissions=2147534848&scope=bot%20applications.commands
 ```
 
-### Database Migrations
+### Monorepo Commands
 ```bash
+# Build all packages
+pnpm build
+
+# Run specific package
+pnpm dev:bot    # Run Discord bot
+pnpm dev:web    # Run web app (when implemented)
+pnpm dev:worker # Run background worker (when implemented)
+
+# Lint/test all packages
+pnpm lint
+pnpm test
+
+# Work on specific package
+pnpm --filter @grakchawwaa/core build
+pnpm --filter @grakchawwaa/discord-bot dev
+```
+
+### Database Migrations (Core Package)
+```bash
+# Migrations are managed in the core package
+
 # Create a new migration
-docker exec grakchawwaa-bot pnpm migration:create --name=description
+docker exec grakchawwaa-bot sh -c "cd packages/core && pnpm migration:create --name=description"
 
 # Run pending migrations
-docker exec grakchawwaa-bot pnpm migration:up
+docker exec grakchawwaa-bot sh -c "cd packages/core && pnpm migration:up"
 
 # Rollback last migration
-docker exec grakchawwaa-bot pnpm migration:down
-
-# Show pending migrations
-docker exec grakchawwaa-bot pnpm mikro-orm migration:pending
+docker exec grakchawwaa-bot sh -c "cd packages/core && pnpm migration:down"
 ```
 
 ### Alternative: Local Setup
 ```bash
 # Requires Node.js 24.x installed locally
-# 1. Install dependencies
+# 1. Install dependencies (installs all workspace packages)
 pnpm install
 
 # 2. Start only PostgreSQL in Docker
@@ -239,10 +303,8 @@ docker compose up -d postgres
 
 # 3. Update PGHOST=localhost in .env.dev
 
-# 4. Create database tables (same SQL as above via psql)
-
-# 5. Run bot locally
-pnpm dev
+# 4. Run bot locally
+pnpm dev:bot
 ```
 
 ### Docker Commands
@@ -315,10 +377,11 @@ The bot uses Sapphire's command structure:
 
 ### Database Access
 - Uses **MikroORM** for type-safe database operations
-- Entities defined with decorators in `src/entities/`
-- Custom repositories in `src/repositories/`
-- Migration-based schema management
-- Repositories injected via Sapphire container (`container.playerRepository`, etc.)
+- Entities defined with decorators in `packages/core/src/entities/`
+- Custom repositories in `packages/core/src/repositories/`
+- Migration-based schema management in core package
+- Framework-agnostic core package exports entities, repositories, and initialization
+- Discord bot imports from `@grakchawwaa/core` and injects into Sapphire container
 
 ### Service Pattern
 - Services encapsulate business logic
@@ -349,6 +412,12 @@ The bot uses Sapphire's command structure:
 
 ## Recent Changes (from git log)
 
+- 🏗️ **Migrate to pnpm monorepo architecture** (2024-12-15)
+  - Create `@grakchawwaa/core` package with framework-agnostic database layer
+  - Create `@grakchawwaa/discord-bot` package using core
+  - Add placeholder packages for web app and worker
+  - Update all imports to use workspace packages
+  - Refactor repositories to accept primitive types instead of framework-specific objects
 - 🔧 Migrate database layer to MikroORM (entities, repositories, migrations)
 - ✨ Implement success notification for perfect ticket collection
 - 📝 Add timestamp on registration for legal reasons
