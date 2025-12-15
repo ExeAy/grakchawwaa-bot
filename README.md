@@ -39,11 +39,36 @@ Discord bot for Star Wars: Galaxy of Heroes guild management.
 
 ## Development
 
-The bot is built using TypeScript and the Sapphire Discord.js framework.
+The bot is built using TypeScript, Sapphire Discord.js framework, and MikroORM for database access. The project uses a **pnpm monorepo** structure to share code between the Discord bot, future web app, and background worker.
+
+### Project Structure
+
+```
+grakchawwaa-bot/
+├── packages/
+│   ├── core/                  # Shared database layer and business logic
+│   │   ├── src/
+│   │   │   ├── entities/      # MikroORM entities
+│   │   │   ├── repositories/  # Database repositories
+│   │   │   ├── migrations/    # Database migrations
+│   │   │   ├── db/            # MikroORM initialization
+│   │   │   └── utils/         # Shared utilities
+│   │   └── package.json
+│   ├── discord-bot/           # Discord bot application
+│   │   ├── src/
+│   │   │   ├── commands/      # Slash commands
+│   │   │   ├── services/      # Bot services
+│   │   │   └── index.ts       # Bot entry point
+│   │   └── package.json
+│   ├── web/                   # Future web app (placeholder)
+│   └── worker/                # Future background worker (placeholder)
+├── pnpm-workspace.yaml        # Workspace configuration
+└── package.json               # Root package
+```
 
 ### Prerequisites
 
-- Node.js (v16 or higher)
+- Node.js (v24 or higher)
 - PNPM package manager
 - Docker and Docker Compose (for local database setup)
 
@@ -56,7 +81,7 @@ git clone https://github.com/yourusername/grakchawwaa-bot.git
 cd grakchawwaa-bot
 ```
 
-2. Install dependencies
+2. Install dependencies (this installs all workspace packages)
 
 ```bash
 pnpm install
@@ -64,66 +89,74 @@ pnpm install
 
 3. Configure environment variables
 
-- Create an `.env.dev` file with the following attributes:
+- Create an `.env.dev` file in the root with the following:
 
   ```
     NODE_ENV=development
-    PORT=3200
-    APP_NAME=grakchawaa
 
-    DISCORD_APPLICATION_ID=
-    DISCORD_TOKEN=
-    DISCORD_PUBLIC_KEY=
+    DISCORD_APPLICATION_ID=your_application_id
+    DISCORD_TOKEN=your_bot_token
 
-    PGUSER=
-    PGHOST=
-    PGPORT=
-    PGPASSWORD=
-    PGDATABASE=
+    PGUSER=grakchawwaa
+    PGHOST=postgres
+    PGPORT=5432
+    PGPASSWORD=dev_password
+    PGDATABASE=grakchawwaa_dev
 
-    COMLINK_URL=
+    COMLINK_URL=http://localhost:3000
     COMLINK_ACCESS_KEY=""
     COMLINK_SECRET_KEY=""
   ```
 
-You will need to register your own discord bot (for manual testing) and setup you own [swgoh comlink instance](https://github.com/swgoh-utils/swgoh-comlink). From those you can fill in the values missing above.
+You will need to register your own discord bot (for manual testing) and setup your own [swgoh comlink instance](https://github.com/swgoh-utils/swgoh-comlink). From those you can fill in the values missing above.
 
 ### Database Setup
 
 The easiest way to set up a local PostgreSQL database is using Docker:
 
 ```bash
-pnpm docker:setup
+# Start all services (PostgreSQL + Bot)
+docker compose up -d
+
+# Initialize database with schema and test data (run from inside container)
+docker exec grakchawwaa-bot ts-node packages/discord-bot/infra/setupDockerDB.ts
 ```
 
-This command will:
+This will:
 - Start a PostgreSQL container with pre-configured credentials
-- Wait for the database to be ready
+- Start the bot in development mode
+- Automatically run MikroORM migrations on startup
 - Create all required tables
-- Insert test data
 
 **Docker Database Credentials:**
-- Host: `localhost`
+- Host: `postgres` (inside container) or `localhost` (from host)
 - Port: `5432`
 - User: `grakchawwaa`
 - Password: `dev_password`
 - Database: `grakchawwaa_dev`
 
-To use the Docker database in your `.env.dev` file:
-
-```
-PGUSER=grakchawwaa
-PGHOST=localhost
-PGPORT=5432
-PGPASSWORD=dev_password
-PGDATABASE=grakchawwaa_dev
-```
-
 **Docker Commands:**
-- `pnpm docker:up` - Start the database container
-- `pnpm docker:down` - Stop the database container
-- `pnpm docker:setup` - Start database and run setup scripts
-- `pnpm docker:reset` - Reset database (removes all data) and re-run setup
+- `docker compose up -d` - Start all services in background
+- `docker compose logs -f bot` - Follow bot logs
+- `docker compose restart bot` - Restart bot container
+- `docker compose down` - Stop all services
+- `docker compose down -v` - Stop and delete database volume
+
+**Monorepo Commands:**
+- `pnpm build` - Build all packages
+- `pnpm dev:bot` - Run Discord bot in development mode
+- `pnpm dev:web` - Run web app (when implemented)
+- `pnpm dev:worker` - Run background worker (when implemented)
+- `pnpm lint` - Lint all packages
+- `pnpm test` - Test all packages
+
+**Migration Commands (run in core package):**
+```bash
+# Inside container
+docker exec grakchawwaa-bot sh -c "cd packages/core && pnpm migration:create --name=description"
+docker exec grakchawwaa-bot sh -c "cd packages/core && pnpm migration:up"
+docker exec grakchawwaa-bot sh -c "cd packages/core && pnpm migration:down"
+```
 
 **Querying the Database:**
 

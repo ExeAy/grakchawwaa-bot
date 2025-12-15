@@ -16,6 +16,22 @@ services:
       timeout: 5s
       retries: 5
 
+  bot:
+    image: node:24-alpine
+    container_name: grakchawwaa-bot
+    working_dir: /app
+    volumes:
+      - .:/app
+      - /app/node_modules
+    environment:
+      NODE_ENV: development
+    command: sh -c "corepack enable && pnpm install && pnpm dev:bot"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    env_file:
+      - .env.dev
+
 volumes:
   postgres_data:
 
