@@ -10,16 +10,15 @@ const RETRY_DELAY = 1000
 
 const DOCKER_DB_CONFIG: DatabaseConfig = {
   user: "grakchawwaa",
-  host: "localhost",
+  host: process.env.PGHOST || "postgres",
   password: "dev_password",
   database: "grakchawwaa_dev",
   port: 5432,
 }
 
 const waitForDatabase = async (config: DatabaseConfig): Promise<void> => {
-  const client = new Client(config)
-
   for (let i = 0; i < MAX_RETRIES; i++) {
+    const client = new Client(config)
     try {
       await client.connect()
       await client.query("SELECT 1")
@@ -27,6 +26,11 @@ const waitForDatabase = async (config: DatabaseConfig): Promise<void> => {
       console.log("Database is ready!")
       return
     } catch (error) {
+      try {
+        await client.end()
+      } catch {
+        // Ignore
+      }
       if (i === MAX_RETRIES - 1) {
         throw new Error(
           `Database not ready after ${MAX_RETRIES} attempts: ${error}`,

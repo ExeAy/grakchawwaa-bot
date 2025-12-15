@@ -29,7 +29,7 @@ export class UnregisterTicketCollectionCommand extends Command {
       await interaction.deferReply()
 
       // Get player's ally code
-      const playerData = await container.playerClient.getPlayer(
+      const playerData = await container.playerRepository.getPlayer(
         interaction.user.id,
       )
       if (!playerData) {
@@ -81,7 +81,7 @@ export class UnregisterTicketCollectionCommand extends Command {
 
       // Check if the guild is registered for monitoring
       const monitoringData =
-        await container.ticketChannelClient.getGuildMessageChannels(
+        await container.guildMessageChannelsRepository.getGuildMessageChannels(
           comlinkGuild.guild.profile.id,
         )
       if (!monitoringData) {
@@ -93,7 +93,7 @@ export class UnregisterTicketCollectionCommand extends Command {
 
       // Unregister the guild
       const success =
-        await container.ticketChannelClient.unregisterTicketCollectionChannel(
+        await container.guildMessageChannelsRepository.unregisterTicketCollectionChannel(
           comlinkPlayer.guildId,
         )
       if (!success) {

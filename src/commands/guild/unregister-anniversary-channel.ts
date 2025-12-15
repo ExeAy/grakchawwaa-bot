@@ -30,7 +30,7 @@ export class UnregisterAnniversaryChannelCommand extends Command {
 
     try {
       // Get player's ally code
-      const playerData = await container.playerClient.getPlayer(
+      const playerData = await container.playerRepository.getPlayer(
         interaction.user.id,
       )
       if (!playerData) {
@@ -82,10 +82,10 @@ export class UnregisterAnniversaryChannelCommand extends Command {
 
       // Check if the guild is registered for anniversary notifications
       const guildChannels =
-        await container.ticketChannelClient.getGuildMessageChannels(
+        await container.guildMessageChannelsRepository.getGuildMessageChannels(
           comlinkGuild.guild.profile.id,
         )
-      if (!guildChannels || !guildChannels.anniversary_channel_id) {
+      if (!guildChannels || !guildChannels.anniversaryChannelId) {
         return interaction.editReply({
           content:
             "This guild is not registered for anniversary notifications.",
@@ -94,7 +94,7 @@ export class UnregisterAnniversaryChannelCommand extends Command {
 
       // Unregister the guild
       const success =
-        await container.ticketChannelClient.unregisterAnniversaryChannel(
+        await container.guildMessageChannelsRepository.unregisterAnniversaryChannel(
           comlinkPlayer.guildId,
         )
       if (!success) {

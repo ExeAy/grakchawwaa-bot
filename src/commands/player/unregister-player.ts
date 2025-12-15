@@ -34,11 +34,10 @@ export class UnregisterPlayerCommand extends Command {
     const allyCode = interaction.options.getString("ally-code")
 
     if (allyCode) {
-      const saveResult = await this.playerOps.removeAllyCode({
-        allyCode: allyCode,
-        altAllyCodes: [],
-        discordUser: interaction.user,
-      })
+      const saveResult = await this.playerOps.removeAllyCode(
+        interaction.user.id,
+        allyCode,
+      )
 
       if (!saveResult) {
         return interaction.reply({
@@ -52,11 +51,7 @@ export class UnregisterPlayerCommand extends Command {
         content: `Unregistered player with ally code: ${allyCode} for ${userCallerToMention}`,
       })
     }
-    const saveResult = await this.playerOps.removePlayer({
-      discordUser: interaction.user,
-      allyCode: "",
-      altAllyCodes: [],
-    })
+    const saveResult = await this.playerOps.removePlayer(interaction.user.id)
 
     if (!saveResult) {
       return interaction.reply({

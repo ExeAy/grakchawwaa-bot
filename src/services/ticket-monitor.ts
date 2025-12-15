@@ -69,25 +69,33 @@ export class TicketMonitorService {
   private async checkGuildResetTimes(): Promise<void> {
     try {
       // Get all registered guilds
-      const guilds = await container.ticketChannelClient.getAllGuilds()
+      const guilds = await container.guildMessageChannelsRepository.getAllGuilds()
       const now = Date.now()
 
       for (const guild of guilds) {
+        // Skip guilds without required fields
+        if (
+          !guild.ticketCollectionChannelId ||
+          !guild.nextTicketCollectionRefreshTime
+        ) {
+          continue
+        }
+
         // Parse the next refresh time
         const refreshTime =
-          parseInt(guild.next_ticket_collection_refresh_time) * 1000 // Convert to milliseconds
-        const refreshTimeKey = `${guild.guild_id}:${guild.next_ticket_collection_refresh_time}`
+          parseInt(guild.nextTicketCollectionRefreshTime) * 1000 // Convert to milliseconds
+        const refreshTimeKey = `${guild.guildId}:${guild.nextTicketCollectionRefreshTime}`
 
         // In dev mode with forceCheck, process regardless of timing
         if (this.isDevMode) {
           console.log(
-            `Development mode: Force checking tickets for guild ${guild.guild_id}`,
+            `Development mode: Force checking tickets for guild ${guild.guildId}`,
           )
 
-          if (guild.ticket_reminder_channel_id) {
+          if (guild.ticketReminderChannelId) {
             const reminderSent = await this.sendTicketReminder(
-              guild.guild_id,
-              guild.ticket_reminder_channel_id,
+              guild.guildId,
+              guild.ticketReminderChannelId,
             )
 
             if (reminderSent) {
@@ -97,14 +105,14 @@ export class TicketMonitorService {
 
           // Process ticket data collection
           await this.collectTicketData(
-            guild.guild_id,
-            guild.ticket_collection_channel_id,
+            guild.guildId,
+            guild.ticketCollectionChannelId,
           )
 
           // Also force run post-refresh operations and summaries
           await this.handlePostRefreshOperations(
-            guild.guild_id,
-            guild.ticket_collection_channel_id,
+            guild.guildId,
+            guild.ticketCollectionChannelId,
             true,
           )
 
@@ -115,14 +123,14 @@ export class TicketMonitorService {
         // Check if we're within 2 minutes of the reset for ticket collection
         const timeUntilReset = refreshTime - now
         if (
-          guild.ticket_reminder_channel_id &&
+          guild.ticketReminderChannelId &&
           timeUntilReset > 0 &&
           timeUntilReset <= TicketMonitorService.REMINDER_BEFORE_RESET &&
           !this.reminderSentTimes.has(refreshTimeKey)
         ) {
           const reminderSent = await this.sendTicketReminder(
-            guild.guild_id,
-            guild.ticket_reminder_channel_id,
+            guild.guildId,
+            guild.ticketReminderChannelId,
           )
 
           if (reminderSent) {
@@ -141,8 +149,8 @@ export class TicketMonitorService {
 
           // It's time to check ticket counts
           await this.collectTicketData(
-            guild.guild_id,
-            guild.ticket_collection_channel_id,
+            guild.guildId,
+            guild.ticketCollectionChannelId,
           )
         }
 
@@ -152,8 +160,8 @@ export class TicketMonitorService {
           // For post-refresh operations, we want to run them once when the time is right
           // After updating the refresh time, the old key will no longer match
           await this.handlePostRefreshOperations(
-            guild.guild_id,
-            guild.ticket_collection_channel_id,
+            guild.guildId,
+            guild.ticketCollectionChannelId,
           )
 
           this.processedRefreshTimes.delete(refreshTimeKey)
@@ -244,7 +252,7 @@ export class TicketMonitorService {
       })
 
       // Store violation data with ticket counts only
-      await container.ticketViolationClient.recordViolations(
+      await container.ticketViolationRepository.recordViolations(
         guildId,
         ticketCounts,
       )
@@ -303,7 +311,7 @@ export class TicketMonitorService {
     newRefreshTime: string,
   ): Promise<void> {
     try {
-      await container.ticketChannelClient.registerTicketCollectionChannel(
+      await container.guildMessageChannelsRepository.registerTicketCollectionChannel(
         guildId,
         channelId,
         newRefreshTime,
@@ -418,7 +426,7 @@ export class TicketMonitorService {
     }
 
     const discordId =
-      await container.playerClient.findDiscordIdByAllyCode(allyCode)
+      await container.playerRepository.findDiscordIdByAllyCode(allyCode)
     this.allyCodeDiscordCache.set(allyCode, discordId)
     return discordId
   }

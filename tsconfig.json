@@ -9,6 +9,8 @@
     "moduleDetection": "force",
     "isolatedModules": true,
     "verbatimModuleSyntax": false,
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
 
     /* Strictness */
     "strict": true,
@@ -40,5 +42,12 @@
     "types": ["./src/types/comlink.d.ts", "jest", "node"]
   },
   "include": ["src/**/*"],
-  "exclude": ["node_modules", "dist", ".wrangler"]
+  "exclude": [
+    "node_modules",
+    "dist",
+    ".wrangler",
+    "src/tests/**/*",
+    "**/__tests__/**/*",
+    "**/*.test.ts"
+  ]
 }

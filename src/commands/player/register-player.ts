@@ -1,6 +1,6 @@
 import { Command } from "@sapphire/framework"
 import { User, userMention } from "discord.js"
-import { Player } from "../../model/player"
+import { Player } from "../../entities/Player.entity"
 import { normalizeAllyCode, sanitizeAllyCodeList } from "../../utils/ally-code"
 import { PlayerOperationsCommand } from "./player-operations"
 
@@ -105,11 +105,11 @@ export class RegisterPlayerCommand extends Command {
     targetTag: string
     requestedBy: string | null
   }) {
-    const saveResult = await this.playerOps.addUser({
-      discordUser: targetUser,
+    const saveResult = await this.playerOps.addUser(
+      targetUser.id,
       allyCode,
-      altAllyCodes: [],
-    })
+      [],
+    )
 
     if (!saveResult) {
       return interaction.reply({
@@ -164,11 +164,11 @@ export class RegisterPlayerCommand extends Command {
         })
       }
 
-      const saveResult = await this.playerOps.addUser({
-        discordUser: targetUser,
-        allyCode: primaryAllyCode,
-        altAllyCodes: [...altAllyCodes, allyCode],
-      })
+      const saveResult = await this.playerOps.addUser(
+        targetUser.id,
+        primaryAllyCode,
+        [...altAllyCodes, allyCode],
+      )
 
       if (!saveResult) {
         return interaction.reply({
@@ -189,11 +189,11 @@ export class RegisterPlayerCommand extends Command {
       })
     }
 
-    const saveResult = await this.playerOps.addUser({
-      discordUser: targetUser,
+    const saveResult = await this.playerOps.addUser(
+      targetUser.id,
       allyCode,
       altAllyCodes,
-    })
+    )
 
     if (!saveResult) {
       return interaction.reply({

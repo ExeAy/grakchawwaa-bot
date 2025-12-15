@@ -1,5 +1,5 @@
 import { Command } from "@sapphire/framework"
-import { DiscordPlayer, Player } from "../../model/player"
+import { Player } from "../../entities/Player.entity"
 
 export class PlayerOperationsCommand extends Command {
   public constructor(context: Command.LoaderContext, options: Command.Options) {
@@ -11,22 +11,32 @@ export class PlayerOperationsCommand extends Command {
   }
 
   public async getPlayer(userId: string): Promise<Player | null> {
-    const client = this.container.playerClient
-    return client.getPlayer(userId)
+    const repository = this.container.playerRepository
+    return repository.getPlayer(userId)
   }
 
-  public async addUser(player: DiscordPlayer): Promise<boolean> {
-    const client = this.container.playerClient
-    return client.addUser(player)
+  public async addUser(
+    discordUserId: string,
+    allyCode: string,
+    altAllyCodes?: string[],
+  ): Promise<boolean> {
+    const repository = this.container.playerRepository
+    const user = await this.container.client.users.fetch(discordUserId)
+    return repository.addUser(user, allyCode, altAllyCodes)
   }
 
-  public async removeAllyCode(player: DiscordPlayer): Promise<boolean> {
-    const client = this.container.playerClient
-    return client.removeAllyCode(player)
+  public async removeAllyCode(
+    discordUserId: string,
+    allyCode: string,
+  ): Promise<boolean> {
+    const repository = this.container.playerRepository
+    const user = await this.container.client.users.fetch(discordUserId)
+    return repository.removeAllyCode(user, allyCode)
   }
 
-  public async removePlayer(player: DiscordPlayer): Promise<boolean> {
-    const client = this.container.playerClient
-    return client.removePlayer(player)
+  public async removePlayer(discordUserId: string): Promise<boolean> {
+    const repository = this.container.playerRepository
+    const user = await this.container.client.users.fetch(discordUserId)
+    return repository.removePlayer(user)
   }
 }

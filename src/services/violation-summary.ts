@@ -7,7 +7,7 @@ import {
   MessageFlags,
   TextChannel,
 } from "discord.js"
-import { TicketViolationRow } from "../db/ticket-violation-client"
+import { TicketViolation } from "../entities/TicketViolation.entity"
 import { DiscordBotClient } from "../discord-bot-client"
 
 interface ViolationSummary {
@@ -26,7 +26,7 @@ interface SummaryContext {
   guildId: string
   channelId: string
   guildName: string
-  violations: TicketViolationRow[]
+  violations: TicketViolation[]
   reportLabel: string
   daysInPeriod: number
 }
@@ -66,7 +66,7 @@ export class ViolationSummaryService {
   ): Promise<void> {
     try {
       const violations =
-        await container.ticketViolationClient.getWeeklyViolations(guildId)
+        await container.ticketViolationRepository.getWeeklyViolations(guildId)
       if (!violations.length) {
         console.log(
           `No violations found for weekly summary for guild ${guildId}`,
@@ -97,7 +97,7 @@ export class ViolationSummaryService {
   ): Promise<void> {
     try {
       const violations =
-        await container.ticketViolationClient.getMonthlyViolations(guildId)
+        await container.ticketViolationRepository.getMonthlyViolations(guildId)
       if (!violations.length) {
         console.log(
           `No violations found for monthly summary for guild ${guildId}`,
@@ -135,7 +135,7 @@ export class ViolationSummaryService {
       }
 
       const violations =
-        await container.ticketViolationClient.getCustomPeriodViolations(
+        await container.ticketViolationRepository.getCustomPeriodViolations(
           guildId,
           days,
         )
@@ -221,7 +221,7 @@ export class ViolationSummaryService {
       await interaction.deferReply({ flags: MessageFlags.Ephemeral })
 
       const violations =
-        await container.ticketViolationClient.getCustomPeriodViolations(
+        await container.ticketViolationRepository.getCustomPeriodViolations(
           request.guildId,
           request.days,
         )
@@ -304,7 +304,7 @@ export class ViolationSummaryService {
   }
 
   private async getSortedPlayerStats(
-    violations: TicketViolationRow[],
+    violations: TicketViolation[],
     daysInPeriod: number,
   ): Promise<{ stats: ViolationSummary[]; guildName: string | null }> {
     if (!violations.length) {
@@ -313,7 +313,7 @@ export class ViolationSummaryService {
 
     const firstViolation = violations[0]!
     const guildData = await container.cachedComlinkClient.getGuild(
-      firstViolation.guild_id,
+      firstViolation.guildId,
       true,
     )
     if (!guildData?.guild?.member) {
@@ -542,7 +542,7 @@ export class ViolationSummaryService {
   }
 
   private calculatePlayerStats(
-    violations: TicketViolationRow[],
+    violations: TicketViolation[],
     daysInPeriod: number,
     playerNames: Map<string, string>,
   ): Map<string, ViolationSummary> {
@@ -561,14 +561,14 @@ export class ViolationSummaryService {
    * Collect counts of violations, tickets, and days for each player
    */
   private collectViolationCounts(
-    violations: TicketViolationRow[],
+    violations: TicketViolation[],
   ): Map<string, PlayerCounter> {
     const playerCounters = new Map<string, PlayerCounter>()
 
     // Process each violation record
     for (const violation of violations) {
       // Ensure ticket_counts exists, use empty object as fallback
-      const ticketCounts = violation.ticket_counts || {}
+      const ticketCounts = violation.ticketCounts || {}
 
       // Process each player in the ticket_counts object
       for (const playerId of Object.keys(ticketCounts)) {

@@ -109,7 +109,7 @@ export class TicketSummaryCommand extends Command {
     guildName?: string
   }> {
     // Get the player's ally code
-    const player = await container.playerClient.getPlayer(interaction.user.id)
+    const player = await container.playerRepository.getPlayer(interaction.user.id)
     if (!player?.allyCode) {
       return {
         success: false,
@@ -135,11 +135,11 @@ export class TicketSummaryCommand extends Command {
 
     // Check if the player's SW guild is registered for ticket collection
     const guildSettings =
-      await container.ticketChannelClient.getGuildMessageChannels(
+      await container.guildMessageChannelsRepository.getGuildMessageChannels(
         playerData.guildId,
       )
 
-    if (!guildSettings?.ticket_collection_channel_id) {
+    if (!guildSettings?.ticketCollectionChannelId) {
       return {
         success: false,
         response: {
