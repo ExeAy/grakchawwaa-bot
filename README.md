@@ -39,11 +39,11 @@ Discord bot for Star Wars: Galaxy of Heroes guild management.
 
 ## Development
 
-The bot is built using TypeScript and the Sapphire Discord.js framework.
+The bot is built using TypeScript, Sapphire Discord.js framework, and MikroORM for database access.
 
 ### Prerequisites
 
-- Node.js (v16 or higher)
+- Node.js (v24 or higher)
 - PNPM package manager
 - Docker and Docker Compose (for local database setup)
 
@@ -93,13 +93,21 @@ You will need to register your own discord bot (for manual testing) and setup yo
 The easiest way to set up a local PostgreSQL database is using Docker:
 
 ```bash
-pnpm docker:setup
+# Start all services (PostgreSQL + Bot)
+docker compose up -d
+
+# Initialize database with schema and test data
+docker exec grakchawwaa-bot pnpm ts-node infra/setupDockerDB.ts
+
+# Run migrations to update schema for MikroORM
+docker exec grakchawwaa-bot pnpm migration:up
 ```
 
-This command will:
+This will:
 - Start a PostgreSQL container with pre-configured credentials
 - Wait for the database to be ready
-- Create all required tables
+- Create all required tables with initial schema
+- Run migrations to rename tables to camelCase for MikroORM
 - Insert test data
 
 **Docker Database Credentials:**
@@ -120,10 +128,16 @@ PGDATABASE=grakchawwaa_dev
 ```
 
 **Docker Commands:**
-- `pnpm docker:up` - Start the database container
-- `pnpm docker:down` - Stop the database container
-- `pnpm docker:setup` - Start database and run setup scripts
-- `pnpm docker:reset` - Reset database (removes all data) and re-run setup
+- `docker compose up -d` - Start all services in background
+- `docker compose logs -f bot` - Follow bot logs
+- `docker compose restart bot` - Restart bot container
+- `docker compose down` - Stop all services
+- `docker compose down -v` - Stop and delete database volume
+
+**Migration Commands:**
+- `docker exec grakchawwaa-bot pnpm migration:create --name=description` - Create new migration
+- `docker exec grakchawwaa-bot pnpm migration:up` - Run pending migrations
+- `docker exec grakchawwaa-bot pnpm migration:down` - Rollback last migration
 
 **Querying the Database:**
 
