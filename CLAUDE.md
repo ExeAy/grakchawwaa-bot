@@ -2,7 +2,30 @@
 
 ## Project Overview
 
-**grakchawwaa-bot** is a Discord bot for Star Wars: Galaxy of Heroes (SWGOH) guild management. It helps guilds track ticket collection, monitor player anniversaries, and manage guild member information.
+**grakchawwaa-bot** is a Discord bot for Star Wars: Galaxy of Heroes (SWGOH) guild management. It helps guild leaders and officers monitor guild performance, track member participation, and identify players not meeting expectations.
+
+### About SWGOH
+
+Star Wars: Galaxy of Heroes is a mobile game where players collect characters and ships to form teams that face various challenges with both PVP and PVE elements. Players join guilds to collaborate in different events:
+
+**Guild Events:**
+- **Raids** - PVE battles where each player earns points. Combined guild points unlock reward chests for everyone. Requires 600 tickets per day from guild members to launch.
+- **Territory Wars (TW)** - PVP event where two guilds compete. Phase 1: Set defensive teams across 10 zones. Phase 2: Attack opponent's zones. Most points wins.
+- **Territory Battles (TB)** - PVE event with multiple phases and zones. Earn up to 3 stars per zone through platoons, combat missions, special missions, and unit deployment.
+
+**Current Bot Features:**
+- Track daily ticket contributions (600 tickets/day expected per player)
+- Monitor guild member anniversaries
+- Link Discord users to SWGOH ally codes
+- Generate violation reports for underperforming members
+
+**Planned Features:**
+- Raid performance tracking and reporting
+- Territory War participation monitoring
+- Territory Battle coordination and tracking
+- Combat mission completion analysis
+- Special mission tracking
+- Platoon contribution monitoring
 
 ## Tech Stack
 
@@ -44,18 +67,58 @@
 
 ## Core Functionality
 
-### 1. Ticket Collection Monitoring
-- Monitors guild members' ticket contributions (600 tickets per day expected)
-- Posts daily summaries to a configured Discord channel
-- Tracks violations and generates reports
+### 1. Ticket Collection Monitoring (Implemented)
+**Purpose:** Ensure guild members contribute their daily 600 tickets needed to launch raids.
 
-### 2. Anniversary Notifications
-- Tracks when players joined their guild
-- Posts anniversary messages to a configured channel
+**How it works:**
+- Monitors guild members' ticket contributions via Comlink API
+- Posts daily summaries to configured Discord channel
+- Tracks violations (players with <600 tickets)
+- Generates weekly/monthly violation reports
+- Sends reminders before ticket reset time
 
-### 3. Guild Management
-- Fetch guild member lists via ally codes
-- Player registration system linking Discord users to SWGOH accounts
+**Technical details:**
+- Runs periodic checks (every 6 hours in dev mode, 2 hours before reset in production)
+- Stores violation history in `ticketViolations` table
+- Uses JSONB to store per-player ticket counts
+
+### 2. Anniversary Notifications (Implemented)
+**Purpose:** Celebrate player milestones to build guild community.
+
+**How it works:**
+- Tracks when players joined their guild (via `guildJoinTime` from Comlink)
+- Checks daily for guild anniversaries
+- Posts celebration messages to configured channel
+
+### 3. Guild Member Management (Implemented)
+**Purpose:** Link Discord users to their SWGOH accounts for tracking.
+
+**How it works:**
+- Player registration via `/register-player` command
+- Links Discord ID to SWGOH ally code (9-digit game identifier)
+- Supports multiple ally codes per user (alt accounts)
+- Fetches guild member lists via `/get-guild-members`
+
+### 4. Future Features (Not Yet Implemented)
+
+**Raid Tracking:**
+- Monitor individual player raid scores
+- Identify players not participating
+- Track damage contributions over time
+- Generate performance reports
+
+**Territory War Monitoring:**
+- Track defensive team placement
+- Monitor attack participation
+- Analyze win/loss ratios per player
+- Zone conquest tracking
+
+**Territory Battle Coordination:**
+- Combat mission completion tracking
+- Special mission assignments and tracking
+- Platoon contribution monitoring
+- Deployment participation per phase/zone
+- Star progress tracking per zone
 
 ## Key Services
 
@@ -198,7 +261,11 @@ pnpm test:coverage  # With coverage
 
 ## Important Notes
 
-1. **Comlink Dependency:** The bot requires a self-hosted SWGOH Comlink instance. This is an unofficial API that extracts data from the game. See: https://github.com/swgoh-utils/swgoh-comlink
+1. **Comlink Dependency:** The bot requires a self-hosted SWGOH Comlink instance. This is an unofficial API that extracts game data directly from EA's servers. Key data retrieved:
+   - Player data: ally codes, guild membership, ticket counts
+   - Guild data: member lists, guild IDs, event participation
+   - Event data: raid scores, TW/TB progress (planned features)
+   - See: https://github.com/swgoh-utils/swgoh-comlink
 
 2. **Heroku Deployment:**
    - Runs as worker dyno (not web)
